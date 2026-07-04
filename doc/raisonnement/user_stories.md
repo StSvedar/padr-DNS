@@ -23,6 +23,7 @@
 - **US-3.3 :** En tant que serveur de nom, si je ne gère qu'une portion du domaine (ex: Root ou TLD), je veux renvoyer une délégation (enregistrement NS) dans la section *Authority* afin que le serveur récursif puisse continuer sa recherche.
 - **US-3.4 :** En tant que serveur de nom, lors d'une délégation, je veux inclure l'adresse IP du serveur délégué dans la section *Additional* (Glue Record) afin de faire gagner du temps au résolveur.
 - **US-3.5 :** En tant que serveur de nom, je veux implémenter l'algorithme de compression (pointeur `11xxxxxx`) lors de la création de ma réponse binaire afin de ne pas saturer la limite de 512 octets de l'UDP.
+- **US-3.6 :** En tant qu'administrateur, je veux pouvoir déclencher le rechargement du fichier JSON "à chaud" (sans redémarrer le processus du serveur) afin d'ajouter ou modifier des enregistrements sans provoquer d'interruption de service.
 
 ### Épic 4 : Tolérance aux Pannes & Réplication (Master / Slave)
 
