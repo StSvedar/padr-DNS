@@ -3,7 +3,7 @@
 - **US-1.1 :** En tant qu'utilisateur, je veux pouvoir tester toutes les fonctionnalités du système depuis un client CLI afin de pouvoir vérifier son bon fonctionnement.
 - **US-1.2 :** En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv4 (Type A) afin de pouvoir me connecter au serveur cible.
 - **US-1.3 :** En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv6 (Type AAAA) afin de pouvoir me connecter au serveur cible sur un réseau moderne.
-- **US-1.4 :** En tant qu'utilisateur, je veux pouvoir vider le cache de mon client local afin de forcer une nouvelle résolution réseau.
+- **US-1.4 :** En tant qu'utilisateur, je veux pouvoir envoyer un signal d'administration au serveur récursif afin de vider son cache à distance pour du diagnostic.
 - **US-1.5 :** En tant qu'utilisateur, je veux pouvoir désactiver la récursion (`RD=0`) via une option du CLI afin d'interroger un serveur de manière ciblée pour du diagnostic.
 - **US-1.6 :** En tant qu'utilisateur, je veux pouvoir utiliser la solution sur mon ordinateur personnel en me limitant à de la configuration réseau pour que mon ordinateur effectue les résolutions de façon transparente.
 
@@ -11,10 +11,11 @@
 
 - **US-2.1 :** En tant que résolveur, je veux écouter sur le port UDP 53 et désérialiser la trame binaire entrante afin d'extraire le nom de domaine et le type de requête demandés.
 - **US-2.2 :** En tant que résolveur, je veux interroger mon cache interne avant d'émettre une requête sur le réseau afin d'accélérer drastiquement le temps de réponse.
-- **US-2.3 :** En tant que résolveur, je veux implémenter la boucle de délégation (Root -> TLD -> Autorité) afin de trouvé la réponse à la requête.
+- **US-2.3 :** En tant que résolveur, je veux implémenter la boucle de délégation (Root -> TLD -> Autorité) afin de trouver la réponse à la requête.
 - **US-2.4 :** En tant que résolveur, je veux extraire le TTL des réponses positives (A/AAAA) et les stocker en mémoire afin de construire mon cache.
 - **US-2.5 :** En tant que résolveur, je veux lire l'enregistrement SOA lors d'une erreur *NXDOMAIN* afin de mettre cette absence en cache (Negative Caching).
 - **US-2.6 :** En tant que résolveur, si une réponse UDP contient le flag `TC=1` (Tronqué), je veux relancer automatiquement ma requête via TCP afin d'obtenir la donnée complète.
+- **US-2.7 :** En tant que résolveur, je veux intercepter les messages d'administration du client afin de vider instantanément ma structure de données de cache en RAM.
 
 ### Épic 3 : Le Serveur de Noms (Root, TLD, Autorité)
 
