@@ -1,0 +1,93 @@
+% Configuration
+\documentclass[11pt,a4paper]{article}
+\usepackage[numbers]{natbib}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}   % Times New Roman
+
+\usepackage{xcolor}
+\definecolor{bleu}{RGB}{0,113,185}
+\definecolor{white}{RGB}{255,255,255}
+\definecolor{black}{RGB}{0,0,0}
+
+\usepackage{setspace}
+\usepackage{afterpage}
+\usepackage[a4paper,top=4cm,bottom=3cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage[colorlinks=false]{hyperref}
+\usepackage{float}
+
+\usepackage{tabularx}      % Pour ajuster la largeur du tableau
+\usepackage[table]{xcolor} % Pour les couleurs de cellules/lignes
+
+% Saut de page après chaque section
+
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+
+% Configuration des listes
+
+\usepackage{enumitem}
+\setlist{
+    itemsep=0.1em,    % Espace entre les éléments de la liste
+    topsep=0.1em,     % Espace avant la liste
+    parsep=0.3em,     % Espace entre les paragraphes à l'intérieur d'un item
+    after=\vspace{1em}       % Espace après la liste
+}
+
+% Mise en page
+
+\renewcommand{\baselinestretch}{1}
+\setlength{\parindent}{10pt}
+\setlength{\parskip}{0.8em}
+
+% Informations du fichier
+
+\title{PADR}
+\author{Malo Goossens}
+
+%Informations destinées à la couverture
+
+\newcommand{\titre}{PADR}
+\newcommand{\auteur}{Malo Goossens}
+\newcommand{\prof}{Dr. Laurent Philippe, M. Adrien Huygens}
+\newcommand{\master}{Master 1 en Architecture des Systèmes Informatiques}
+\newcommand{\annee}{Année académique  2025-2026}
+
+% --------------------------------
+
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[R]{\thepage}
+
+\begin{document}
+\input{cover}
+
+% Table des matières
+
+\thispagestyle{empty}%
+\tableofcontents
+\vfill\cleardoublepage%
+
+% Contenu du document
+
+% Bibliographie
+
+\bibliographystyle{ieeetr} 
+\renewcommand\refname{Bibliographie}
+
+\bibliography{bibliographie}
+
+\input{chapters/note_iag.tex}
+
+\listoffigures
+
+\end{document}

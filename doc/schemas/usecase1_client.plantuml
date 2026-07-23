@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+
+
+actor "Utilisateur" as User
+actor "Serveur Récursif" as Resolver
+
+package "Outil Client (CLI)" {
+  
+  usecase "Interroger un nom de domaine" as UC_Query
+  usecase "Demander IPv4 (Type A)" as UC_A
+  usecase "Demander IPv6 (Type AAAA)" as UC_AAAA
+  usecase "Désactiver la récursion (RD=0)" as UC_NoRec
+  usecase "Vider le cache local" as UC_Clear
+  
+  usecase "Envoyer la requête réseau" as UC_Send
+  usecase "Recevoir et afficher la réponse" as UC_Receive
+
+  ' Actions directes
+  User --> UC_Query
+  User --> UC_Clear
+
+  ' Spécialisation
+  UC_A -up-|> UC_Query
+  UC_AAAA -up-|> UC_Query
+  UC_NoRec .> UC_Query : <<extend>>
+
+  ' Inclusions (Le cycle de vie complet de la requête)
+  UC_Query ..> UC_Send : <<include>>
+  UC_Query ..> UC_Receive : <<include>>
+  
+  ' Interactions avec le réseau (Corrigées)
+  UC_Send --> Resolver : "Requête DNS"
+  Resolver --> UC_Receive : "Réponse DNS"
+}
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+actor Admin
+participant Master
+participant Slave
+
+Admin->>Master: Modifie le JSON & Envoie SIGHUP
+ref over Master: Rechargement à chaud (ZoneLoader)
+
+Master->>Slave: UDP Port 53 : NOTIFY (OpCode 4)
+Slave-->>Master: UDP Port 53 : ACK NOTIFY (QR=1)
+
+Note over Slave: Le Slave constate que son Serial est obsolète
+
+Slave->>Master: [SYN] Ouvre une connexion TCP sur port 53
+Master-->>Slave: [SYN, ACK] Connexion acceptée
+
+ref over Slave: Ajoute 2 octets (Taille) avant la trame DNS
+Slave->>Master: TCP : Demande AXFR (QTYPE=252)
+
+ref over Master: Compile toute la zone JSON
+ref over Master: Ajoute 2 octets (Taille) avant la réponse
+Master-->>Slave: TCP : Réponse AXFR (SOA ... Enregistrements ... SOA)
+
+Slave->>Master: [FIN] Ferme la connexion TCP
+ref over Slave: Met à jour son AuthoritativeEngine local
+@enduml
