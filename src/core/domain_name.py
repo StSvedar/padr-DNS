@@ -8,7 +8,7 @@ class DomainName:
         return self.name
 
     def pack(self, packet: bytearray, domain_offsets: dict) -> bytes:
-        """Encode le nom de domaine avec l'algorithme de compression par pointeur."""
+        """Encode domain name with dns compression"""
         encoded = bytearray()
         
         if not self.name or self.name == ".":
@@ -34,7 +34,7 @@ class DomainName:
 
     @classmethod
     def unpack(cls, data: bytes, offset: int) -> tuple['DomainName', int]:
-        """Décode le nom de domaine en suivant les éventuels pointeurs."""
+        """Decode domain name"""
         labels = []
         original_offset = offset
         jumped = False
