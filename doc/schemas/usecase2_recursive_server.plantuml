@@ -1,0 +1,39 @@
+@startuml
+left to right direction
+
+actor "Client CLI" as Client
+actor "Serveur de Noms\n(Root, TLD, Auth)" as NS
+
+package "Serveur Récursif (Résolveur)" {
+  
+  usecase "Traiter une requête entrante" as UC_Process
+  usecase "Désérialiser la trame UDP/TCP" as UC_Parse
+  usecase "Interroger le cache interne" as UC_Cache
+  
+  usecase "Effectuer la boucle itérative\n(Délégation)" as UC_Delegation
+  usecase "Relancer la requête en TCP" as UC_TCP
+  
+  usecase "Mettre à jour le cache" as UC_UpdateCache
+  usecase "Stocker le TTL (Positif)" as UC_CachePos
+  usecase "Stocker le TTL SOA (NXDOMAIN)" as UC_CacheNeg
+
+  ' Déclencheur
+  Client --> UC_Process
+  
+  ' Processus de base
+  UC_Process ..> UC_Parse : <<include>>
+  UC_Process ..> UC_Cache : <<include>>
+  
+  ' Extensions (Si absent du cache)
+  UC_Delegation .> UC_Process : <<extend>>\n(Si non trouvé)
+  UC_TCP .> UC_Delegation : <<extend>>\n(Si trame reçue TC=1)
+  
+  ' Mise en cache
+  UC_Delegation ..> UC_UpdateCache : <<include>>
+  UC_CachePos -up-|> UC_UpdateCache
+  UC_CacheNeg -up-|> UC_UpdateCache
+
+  ' Acteur externe sollicité
+  UC_Delegation --> NS : "Itération"
+}
+@enduml

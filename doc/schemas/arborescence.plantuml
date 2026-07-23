@@ -1,0 +1,51 @@
+@startsalt
+{
+{T
+ + **dns_project/**
+ ++ .gitlab-ci.yml
+ ++ requirements.txt
+ ++ README.md
+ ++ **docker/**
+ +++ docker-compose.yml
+ +++ Dockerfile.client
+ +++ Dockerfile.resolver
+ +++ Dockerfile.master
+ +++ Dockerfile.slave
+ ++ **config/**
+ +++ resolver.env
+ +++ master.env
+ +++ slave.env
+ ++ **zones/**
+ +++ root.json
+ +++ tld_be.json
+ ++ **tests/**
+ +++ ~__init__.py
+ +++ test_dns_message.py
+ +++ test_cache.py
+ +++ test_authoritative.py
+ ++ **src/**
+ +++ ~__init__.py
+ +++ **core/**
+ ++++ ~__init__.py
+ ++++ dns_message.py
+ ++++ dns_listener.py
+ ++++ dns_requester.py
+ +++ **client/**
+ ++++ ~__init__.py
+ ++++ cli_ui.py
+ ++++ dns_client.py
+ +++ **resolver/**
+ ++++ ~__init__.py
+ ++++ server.py
+ ++++ cache.py
+ ++++ iterative.py
+ +++ **authoritative/**
+ ++++ ~__init__.py
+ ++++ base_server.py
+ ++++ auth_engine.py
+ ++++ zone_loader.py
+ ++++ master_server.py
+ ++++ slave_server.py
+}
+}
+@endsalt
