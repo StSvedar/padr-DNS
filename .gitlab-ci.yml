@@ -1,0 +1,21 @@
+image: python:3.12
+
+stages:
+  - test
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip/
+
+test-job:
+  stage: test
+  before_script:
+    - python -V
+    - python -m pip install --upgrade pip
+    - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - pip install pytest
+  script:
+    - pytest -v
