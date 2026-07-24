@@ -13,6 +13,20 @@ class ResourceRecord:
         self.rdata = rdata
 
     @property
+    def rdata_str(self) -> str:
+        if self.type == RecordType.A:
+            return str(ipaddress.IPv4Address(self.rdata))
+        if self.type == RecordType.AAAA:
+            return str(ipaddress.IPv6Address(self.rdata))
+        if self.type in (RecordType.NS, RecordType.CNAME):
+            domain_obj, _ = DomainName.unpack(self.rdata, 0)
+            return str(domain_obj)
+        if self.type == RecordType.TXT:
+            return self.rdata[1:].decode('utf-8', errors='ignore') if len(self.rdata) > 0 else ""
+        
+        return self.rdata.hex() if isinstance(self.rdata, bytes) else str(self.rdata)
+
+    @property
     def rdlength(self) -> int:
         return len(self.rdata)
 
@@ -51,3 +65,31 @@ class ResourceRecord:
         rdata = data[offset:offset+rdlength]
         offset += rdlength
         return cls(name, RecordType(rtype), RecordClass(rclass), ttl, rdata), offset
+
+    def to_dict(self) -> dict:
+        rtype_str = self.type.name
+        record_dict = {
+            'name': str(self.name),
+            'type': rtype_str,
+            'class': self.rclass.name,
+            'ttl': self.ttl,
+            'rdata': self.rdata_str
+        }
+        return record_dict
+
+    @classmethod
+    def from_dict(cls, name: str, rtype_str: str, record_dict: dict) -> 'ResourceRecord':
+        ttl = record_dict.get('ttl', 300)
+        
+        if rtype_str == 'A':
+            return cls.create_A(name, record_dict['ip'], ttl)
+        if rtype_str == 'AAAA':
+            return cls.create_AAAA(name, record_dict['ip'], ttl)
+        if rtype_str == 'NS':
+            return cls.create_NS(name, record_dict['host'], ttl)
+        if rtype_str == 'CNAME':
+            return cls.create_CNAME(name, record_dict['host'], ttl)
+        if rtype_str == 'TXT':
+            rdata = record_dict['text'].encode('utf-8')
+            return cls(name, RecordType.TXT, RecordClass.IN, ttl, b'\x00' + rdata)
+        raise ValueError(f"Unsupported record type: {rtype_str}")
