@@ -4,7 +4,7 @@ from src.core.domain_name import DomainName
 from src.core.enums import RecordType, RecordClass
 
 class DNSQuestion:
-    def __init__(self, name: str | DomainName, qtype: RecordType, qclass: RecordClass):
+    def __init__(self, name: str | DomainName, qtype: RecordType, qclass: RecordClass = RecordClass.IN):
         self.name = name if isinstance(name, DomainName) else DomainName(name)
         self.qtype = qtype
         self.qclass = qclass

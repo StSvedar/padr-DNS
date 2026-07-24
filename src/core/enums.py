@@ -32,3 +32,7 @@ class Rcode(IntEnum):
     NXDOMAIN = 3
     NOTIMP = 4
     REFUSED = 5
+
+class QR(IntEnum):
+    QUERY = 0
+    RESPONSE = 1

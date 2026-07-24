@@ -1,7 +1,7 @@
 import struct
 import pytest
 from unittest.mock import patch, MagicMock
-import src.core.dns_listener as dns_listener
+from src.core.dns_listener import DNSListener
 
 
 @patch('src.core.dns_listener.socket.socket')
@@ -17,6 +17,7 @@ def test_dns_listener_udp_callback(mock_socket_class):
     mock_callback = MagicMock(return_value=b"response_data")
     
     with pytest.raises(Exception, match="Stop Loop"):
+        dns_listener = DNSListener()
         dns_listener.start_udp_listener("127.0.0.1", 53, on_message_received=mock_callback)
     
     mock_socket_instance.bind.assert_called_once_with(("127.0.0.1", 53))
@@ -55,6 +56,7 @@ def test_dns_listener_tcp_callback(mock_socket_class, mock_thread_class):
     mock_callback = MagicMock(return_value=b"response_data")
 
     with pytest.raises(Exception, match="Stop Loop"):
+        dns_listener = DNSListener()
         dns_listener.start_tcp_listener("127.0.0.1", 53, on_message_received=mock_callback)
 
     mock_socket_instance.bind.assert_called_once_with(("127.0.0.1", 53))
