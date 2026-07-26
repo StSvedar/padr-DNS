@@ -77,13 +77,13 @@ def test_dns_message_with_answers_roundtrip():
     assert unpacked.ancount == 2
     
     ans_a = unpacked.answers[0]
-    assert str(ans_a.name) == 'example.com'
+    assert str(ans_a.domain) == 'example.com'
     assert ans_a.type == RecordType.A
     assert ans_a.ttl == 300
     assert ipaddress.IPv4Address(ans_a.rdata) == ipaddress.IPv4Address('192.168.1.10')
     
     ans_aaaa = unpacked.answers[1]
-    assert str(ans_aaaa.name) == 'example.com'
+    assert str(ans_aaaa.domain) == 'example.com'
     assert ans_aaaa.type == RecordType.AAAA
     assert ans_aaaa.ttl == 600
     assert ipaddress.IPv6Address(ans_aaaa.rdata) == ipaddress.IPv6Address('2001:db8::1')
@@ -106,12 +106,12 @@ def test_dns_message_full_sections_authority_additional():
     assert unpacked.arcount == 1
     
     ns_rr = unpacked.authority[0]
-    assert str(ns_rr.name) == 'domain.be'
+    assert str(ns_rr.domain) == 'domain.be'
     assert ns_rr.type == RecordType.NS
     assert ns_rr.ttl == 86400
     
     glue_rr = unpacked.additional[0]
-    assert str(glue_rr.name) == 'ns1.domain.be'
+    assert str(glue_rr.domain) == 'ns1.domain.be'
     assert glue_rr.type == RecordType.A
     assert ipaddress.IPv4Address(glue_rr.rdata) == ipaddress.IPv4Address('10.0.0.1')
 
@@ -126,7 +126,7 @@ def test_dns_message_cname_record():
     
     cname_rr = unpacked.answers[0]
     assert cname_rr.type == RecordType.CNAME
-    assert str(cname_rr.name) == 'alias.com'
+    assert str(cname_rr.domain) == 'alias.com'
     assert cname_rr.ttl == 120
 
 
@@ -156,5 +156,5 @@ def test_dns_name_compression_across_all_sections():
     unpacked = DNSMessage.unpack(packed)
     
     assert str(unpacked.questions[0].name) == 'sub.example.com'
-    assert str(unpacked.answers[0].name) == 'sub.example.com'
-    assert str(unpacked.authority[0].name) == 'example.com'
+    assert str(unpacked.answers[0].domain) == 'sub.example.com'
+    assert str(unpacked.authority[0].domain) == 'example.com'

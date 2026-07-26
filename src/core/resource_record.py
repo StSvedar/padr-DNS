@@ -5,8 +5,8 @@ from src.core.domain_name import DomainName
 from src.core.enums import RecordType, RecordClass
 
 class ResourceRecord:
-    def __init__(self, name: str | DomainName, type_: RecordType, rclass: RecordClass, ttl: int, rdata: bytes):
-        self.name = name if isinstance(name, DomainName) else DomainName(name)
+    def __init__(self, domain: str | DomainName, type_: RecordType, rclass: RecordClass, ttl: int, rdata: bytes):
+        self.domain = domain if isinstance(domain, DomainName) else DomainName(domain)
         self.type = type_
         self.rclass = rclass
         self.ttl = ttl
@@ -52,7 +52,7 @@ class ResourceRecord:
 
     def pack(self, packet: bytearray, domain_offsets: dict) -> bytes:
         data = bytearray()
-        data.extend(self.name.pack(packet, domain_offsets))
+        data.extend(self.domain.pack(packet, domain_offsets))
         data.extend(struct.pack('!HHIH', self.type, self.rclass, self.ttl, self.rdlength))
         data.extend(self.rdata)
         return bytes(data)
@@ -67,10 +67,7 @@ class ResourceRecord:
         return cls(name, RecordType(rtype), RecordClass(rclass), ttl, rdata), offset
 
     def to_dict(self) -> dict:
-        rtype_str = self.type.name
         record_dict = {
-            'name': str(self.name),
-            'type': rtype_str,
             'class': self.rclass.name,
             'ttl': self.ttl,
             'rdata': self.rdata_str
