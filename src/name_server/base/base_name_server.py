@@ -1,12 +1,44 @@
-from src.core.dns_message import DNSMessage
+import threading
+from typing import Tuple
+from src.core.enums import QR, Rcode, RecordType
 from src.core.zone_data import ZoneData
-from src.core.enums import Rcode, RecordType, QR
+from src.core.dns_listener import DNSListener
+from src.core.dns_message import DNSMessage
 
-class AuthoritativeEngine:
-    def __init__(self, initial_zone_data: dict = {}):
+class BaseNameServer:
+    def __init__(self, listen_ip: str, listen_port: int, initial_zone_data: dict = {}):
+        self.listen_ip = listen_ip
+        self.listen_port = listen_port
+        
         self.zone_data = ZoneData(zone_dict=initial_zone_data)
+        self.listener = DNSListener()
 
-    def build_response(self, query: DNSMessage) -> DNSMessage:
+    def start_listening(self):
+        """Launch UDP and TCP listeners."""
+        print(f"[*] Starting BaseNameServer on {self.listen_ip}:{self.listen_port}")
+        
+        udp_thread = threading.Thread(target=self.listener.start_udp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
+        tcp_thread = threading.Thread(target=self.listener.start_tcp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
+        
+        udp_thread.start()
+        tcp_thread.start()
+        
+        return udp_thread, tcp_thread
+
+    def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
+        """Callback function to route incoming DNS requests to the appropriate handler."""
+        try:
+            query = DNSMessage.unpack(data)
+            
+            response_msg = self._build_response(query)
+            
+            return response_msg.pack()
+            
+        except Exception as e:
+            print(f"[!] Error routing request from {addr} over {protocol}: {e}")
+            return b""
+
+    def _build_response(self, query: DNSMessage) -> DNSMessage:
         response = DNSMessage()
         response.id = query.id
         response.qr = QR.RESPONSE
