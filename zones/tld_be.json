@@ -1,0 +1,17 @@
+{
+  "test.be": {
+    "NS": [
+      {"host": "ns1.test.be", "ttl": 86400}
+    ]
+  },
+  "example.be": {
+    "NS": [
+      {"host": "ns1.test.be", "ttl": 86400}
+    ]
+  },
+  "ns1.test.be": {
+    "A": [
+      {"ip": "10.53.0.102", "ttl": 300}
+    ]
+  }
+}
