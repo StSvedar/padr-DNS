@@ -1,6 +1,7 @@
 import argparse
 import socket
 from src.core.enums import RecordType
+from src.core.resource_record import ResourceRecord
 from src.core.dns_message import DNSMessage
 from src.client.dns_client import DNSClient
 
@@ -47,14 +48,14 @@ class CLI_UI:
     def display_error(self, msg: str):
         print(f"[ERROR] {msg}")
 
-    def _print_section(self, title: str, section_data: list):
+    def _print_section(self, title: str, section_data: list[ResourceRecord]):
         if not section_data:
             return
         print(f";; {title}")
         for record in section_data:
             qtype_str = self._get_type_str(record.type)
             rdata_str = self._format_rdata(record.type, record.rdata)
-            print(f"{record.name}\t{record.ttl}\tIN\t{qtype_str}\t{rdata_str}")
+            print(f"{record.domain}\t{record.ttl}\tIN\t{qtype_str}\t{rdata_str}")
         print()
 
     def _get_type_str(self, qtype: int) -> str:
@@ -77,7 +78,7 @@ class CLI_UI:
         args = self.parse_arguments(args_list)
         rd_flag = 0 if args.no_recurse else 1
         print(f"Querying {args.server}:{args.port} for {args.domain} (type {args.type}, RD={rd_flag}, TCP={args.tcp})...")
-        
+
         try:
             response = self.client.execute_query(args.domain, args.type, rd_flag, args.tcp, args.server, args.port)
         except ValueError as e:
