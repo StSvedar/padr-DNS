@@ -2,6 +2,7 @@
 from enum import IntEnum
 
 class RecordType(IntEnum):
+    UNKNOWN = 0
     A = 1
     NS = 2
     CNAME = 5

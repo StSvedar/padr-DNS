@@ -50,6 +50,15 @@ class ResourceRecord:
         rdata = DomainName(target_host).pack(bytearray(), {})
         return cls(name, RecordType.CNAME, RecordClass.IN, ttl, rdata)
 
+    @classmethod
+    def create_TXT(cls, name: str, text: str, ttl: int = 300) -> 'ResourceRecord':
+        rdata = b'\x00' + text.encode('utf-8')
+        return cls(name, RecordType.TXT, RecordClass.IN, ttl, rdata)
+
+    @classmethod
+    def create_UNKNOWN(cls, name: str, rdata: bytes, ttl: int) -> 'ResourceRecord':
+        return cls(name, RecordType.UNKNOWN, RecordClass.IN, ttl, rdata)
+
     def pack(self, packet: bytearray, domain_offsets: dict) -> bytes:
         data = bytearray()
         data.extend(self.domain.pack(packet, domain_offsets))
@@ -64,6 +73,15 @@ class ResourceRecord:
         offset += 10
         rdata = data[offset:offset+rdlength]
         offset += rdlength
+
+        if not rtype in RecordType._value2member_map_:
+            print(f"[!] Warning: Unknown record type {rtype} encountered while unpacking ResourceRecord.")
+            rtype = RecordType.UNKNOWN
+
+        if not rclass in RecordClass._value2member_map_:
+            print(f"[!] Warning: Unknown record class {rclass} encountered while unpacking ResourceRecord.")
+            rclass = RecordClass.IN # Default to IN if unknown to match from_dict behavior
+
         return cls(name, RecordType(rtype), RecordClass(rclass), ttl, rdata), offset
 
     def to_dict(self) -> dict:
@@ -87,6 +105,7 @@ class ResourceRecord:
         if rtype_str == 'CNAME':
             return cls.create_CNAME(name, record_dict['host'], ttl)
         if rtype_str == 'TXT':
-            rdata = record_dict['text'].encode('utf-8')
-            return cls(name, RecordType.TXT, RecordClass.IN, ttl, b'\x00' + rdata)
-        raise ValueError(f"Unsupported record type: {rtype_str}")
+            return cls.create_TXT(name, record_dict['text'], ttl)
+
+        return cls.create_UNKNOWN(name, record_dict.get('rdata', b''), ttl)
+        
