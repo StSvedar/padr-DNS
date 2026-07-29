@@ -47,13 +47,13 @@ class IterativeEngine:
 
         raw_response = self.requester.send_udp_query(ip, 53, packed_query)
         if raw_response:
-            resp_msg = DNSMessage().unpack(raw_response)
+            resp_msg = DNSMessage.unpack(raw_response)
             
             if resp_msg.tc == 1:
                 print(f"[IterativeEngine] Troncated datagram from {ip}, switching to TCP...")
                 raw_response_tcp = self.requester.send_tcp_query(ip, 53, packed_query)
                 if raw_response_tcp:
-                    resp_msg_tcp = DNSMessage().unpack(raw_response_tcp)
+                    resp_msg_tcp = DNSMessage.unpack(raw_response_tcp)
                     return resp_msg_tcp
             return resp_msg
         return None

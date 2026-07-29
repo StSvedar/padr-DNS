@@ -51,8 +51,13 @@ class ResourceRecord:
         return cls(name, RecordType.CNAME, RecordClass.IN, ttl, rdata)
 
     @classmethod
-    def create_TXT(cls, name: str, text: str, ttl: int = 300) -> 'ResourceRecord':
-        rdata = b'\x00' + text.encode('utf-8')
+    def create_TXT(cls, name: str, text: str | bytes, ttl: int = 300) -> 'ResourceRecord':
+        encoded_text = text.encode('utf-8') if isinstance(text, str) else text
+        
+        if len(encoded_text) > 255:
+            raise ValueError("A single TXT string cannot exceed 255 bytes (RFC 1035)")
+            
+        rdata = bytes([len(encoded_text)]) + encoded_text
         return cls(name, RecordType.TXT, RecordClass.IN, ttl, rdata)
 
     @classmethod
