@@ -1,11 +1,16 @@
+from typing import Tuple
+from src.core.enums import RecordType
 from src.name_server.base.base_name_server import BaseNameServer
+from src.name_server.master.master_replication import MasterReplicationManager
 from src.name_server.master.zone_loader import ZoneLoader
+from src.core.dns_message import DNSMessage
 
 class MasterServer(BaseNameServer):
-    def __init__(self, listen_ip: str, listen_port: int, zone_filepath: str):
+    def __init__(self, listen_ip: str, listen_port: int, zone_filepath: str, slave_ips: list = None):
         super().__init__(listen_ip, listen_port, initial_zone_data=None)
         
         self.zone_loader = ZoneLoader(zone_filepath, self.on_zone_reload)
+        self.replication_manager = MasterReplicationManager(self.zone_data, slave_ips or [])
 
         initial_data = self.zone_loader.read_config()
         if initial_data is not None:
@@ -16,9 +21,26 @@ class MasterServer(BaseNameServer):
         self.zone_loader.listen_for_sighup()
 
     def on_zone_reload(self, new_data: dict):
-        """Callback for hot-reloading zone data."""
-        print("[MasterServer] Hot-reloading zone data...")
+        """Callback for hot reloading zone data."""
+        print("[MasterServer] Hot reloading zone data...")
         self.zone_data.load_from_dict(new_data)
+
+    def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
+        """Override the parent router to intercept AXFR transfer requests."""
+        try:
+            query = DNSMessage.unpack(data)
+            
+            if query.questions and query.questions[0].qtype == RecordType.AXFR:
+                if protocol != "TCP":
+                    print(f"[!] AXFR request refused by {addr}. TCP required.")
+                    return b""
+                response_msg = self.replication_manager.handle_axfr(query)
+                return response_msg.pack()
+
+            return super()._route_request(data, addr, protocol)
+        except Exception as e:
+            print(f"[!] MasterServer error ({addr}): {e}")
+            return b""
         
 
 if __name__ == "__main__":
