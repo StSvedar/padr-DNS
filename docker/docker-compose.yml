@@ -16,7 +16,7 @@ services:
       dns_net:
         ipv4_address: 10.53.0.100
     volumes:
-      - ../zones/root.json:/app/zones/root.json
+      - ../zones:/app/zones
 
   tld_be_ns:
     build:
@@ -29,7 +29,7 @@ services:
       dns_net:
         ipv4_address: 10.53.0.101
     volumes:
-      - ../zones/tld_be.json:/app/zones/tld_be.json
+      - ../zones:/app/zones
 
   auth_test_ns:
     build:
@@ -42,7 +42,7 @@ services:
       dns_net:
         ipv4_address: 10.53.0.102
     volumes:
-      - ../zones/auth_test_be.json:/app/zones/auth_test_be.json
+      - ../zones:/app/zones
 
   resolver:
     build:

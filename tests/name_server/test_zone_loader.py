@@ -1,7 +1,7 @@
 import json
 import os
-import signal
 import tempfile
+import time
 from unittest.mock import MagicMock, patch
 
 from src.name_server.master.zone_loader import ZoneLoader
@@ -44,12 +44,39 @@ def test_zone_loader_notifies_callback_for_valid_config():
         os.remove(tmp_path)
 
 
-def test_zone_loader_registers_sighup_handler():
+def test_zone_loader_starts_watching_thread():
     loader = ZoneLoader("unused.json", MagicMock())
 
-    with patch.object(signal, "SIGHUP", 1, create=True), patch(
-        "src.name_server.master.zone_loader.signal.signal"
-    ) as mock_signal:
+    with patch("threading.Thread") as mock_thread:
         loader.listen_for_sighup()
 
-    mock_signal.assert_called_once_with(1, loader._handle_signal)
+        mock_thread.assert_called_once()
+        mock_thread.return_value.start.assert_called_once()
+
+
+def test_zone_loader_detects_file_change():
+    initial_data = {"test.com": {"A": [{"ip": "10.0.0.1", "ttl": 60}]}}
+    updated_data = {"test.com": {"A": [{"ip": "10.0.0.2", "ttl": 60}]}}
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+        json.dump(initial_data, tmp)
+        tmp_path = tmp.name
+
+    try:
+        callback = MagicMock()
+        loader = ZoneLoader(tmp_path, callback, check_interval=0.05)
+        
+        loader.listen_for_sighup()
+
+        time.sleep(0.1)
+        with open(tmp_path, "w") as f:
+            json.dump(updated_data, f)
+        
+        future_mtime = time.time() + 2
+        os.utime(tmp_path, (future_mtime, future_mtime))
+
+        time.sleep(0.2)
+
+        callback.assert_called_with(updated_data)
+    finally:
+        os.remove(tmp_path)
