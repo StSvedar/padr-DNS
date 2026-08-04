@@ -1,0 +1,30 @@
+
+\subsection{Objectif du projet}
+% TODO: Rédiger l'objectif global du projet.
+% - Expliquer la démarche "from scratch" pour comprendre le DNS de l'intérieur.
+% - Présenter la création des trois briques : Client CLI, Résolveur Récursif, Serveur Autoritaire.
+
+\subsection{Périmètre et limites du système}
+% TODO: Définir ce qui est implémenté et ce qui est exclu.
+% - Inclus : Résolution itérative, gestion du cache, fallback TCP, réplication AXFR/NOTIFY, hot-reload.
+% - Exclus : Signatures DNSSEC, interface graphique (GUI), support IPv6 avancé (si limité à l'IPv4).
+
+\subsection{Organisation du document}
+% TODO: Présenter rapidement le déroulé des chapitres suivants (Contexte, Analyse Fonctionnelle, Analyse Technique, Implémentation, Rétrospective, Note IAG).
+
+\subsection{Le fonctionnement du protocole DNS}
+% TODO: Présenter les principes fondamentaux du DNS.
+% - La structure arborescente des noms de domaine.
+% - La hiérarchie des serveurs : Root (.), TLD (.be), Serveurs Autoritaires.
+% - La différence entre résolution récursive (vue client) et itérative (vue résolveur).
+
+\subsection{La contrainte « Vanilla Python »}
+% TODO: Expliquer les règles imposées pour ce projet.
+% - Développement exclusivement avec la bibliothèque standard Python (struct, socket, threading, etc.).
+% - Interdiction des bibliothèques tierces comme dnspython pour le cœur de protocole.
+% % [À MENTIONNER]: L'absence de support POSIX natif sous Windows (notamment pour SIGHUP), imposant de trouver des mécanismes multiplateformes.
+
+\subsection{L'interopérabilité et le respect de la RFC 1035}
+% TODO: Développer les enjeux d'interopérabilité.
+% - Nécessité de respecter scrupuleusement le format de trame binaire de 1987.
+% - Garantir la compatibilité ascendante avec des outils système réels (dig, nslookup, host).

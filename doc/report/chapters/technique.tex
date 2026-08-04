@@ -1,0 +1,55 @@
+\section{Analyse technique}
+\subsection{La Forge Binaire DNS (La Sérialisation)}
+
+\subsubsection{Encodage et masques bit-à-bit}
+% TODO: Expliquer l'utilisation du module `struct` de Python (format '!HHHHHH').
+% - Détailler la manipulation des flags d'en-tête (QR, Opcode, AA, TC, RD, RA, Rcode) via les décalages et masques binationaux.
+
+\subsubsection{Compression des noms et gestion de la section ADDITIONAL}
+% TODO: Expliquer le fonctionnement du pointeur de compression 0xC0.
+% % [À MENTIONNER]: Gestion et tolérance de la section ADDITIONAL : ignorer silencieusement les enregistrements OPT (EDNS0, type 41) envoyés par dig/nslookup sans faire planter l'unpacking.
+
+\subsubsection{Encodage des enregistrements TXT}
+% TODO: Développer le format spécifique des enregistrements TXT.
+% % [À MENTIONNER]: Encodage Pascal-string des chaines TXT (1 octet de longueur + octets UTF-8) et vérification de la limite stricte des 255 octets par segment.
+
+\subsection{Stratégie Réseau (UDP vs TCP)}
+
+\subsubsection{Gestion du Fallback TCP}
+% TODO: Détailler le passage d'UDP à TCP lorsque le bit TC (Truncated) est égal à 1.
+% - Expliquer l'ajout du préfixe de longueur sur 2 octets en début de trame TCP (RFC 1035 section 4.2.2).
+% - Insérer ici le Sequence Diagram : Fallback TCP.
+
+\subsubsection{Architecture réseau et allocation des ports}
+% TODO: Séparation des responsabilités : DNSListener (socket serveur multi-threadé) vs DNSRequester (socket client).
+% % [À MENTIONNER]: Décalage du port d'écoute hôte (10054 au lieu du port 53) pour contourner le verrouillage du service système Windows 'dnscache'.
+
+\subsection{Gestion de la Donnée et du Cache}
+
+\subsubsection{Stockage en RAM vs Format BIND}
+% TODO: Justifier l'utilisation du format JSON en mémoire vive avec accès en O(1) par clé (Nom, Type).
+
+\subsubsection{Comportement du Cache Manager}
+% TODO: Expliquer l'expiration paresseuse ("Lazy Expiration") et le Negative Caching.
+% % [À MENTIONNER]: Réécriture obligatoire du flag AA=0 à la volée lorsqu'une réponse est servie depuis le cache.
+% % [À MENTIONNER]: Recalcul dynamique du TTL restant (remaining_ttl = expires_at - now) appliqué sur chaque ResourceRecord avant réémission.
+
+\subsection{La Réplication Master / Slave et Rechargement}
+
+\subsubsection{Mécanismes AXFR et NOTIFY}
+% TODO: Détailler le workflow de réplication secondaire.
+% % [À MENTIONNER]: Format du transfert AXFR : Choix entre le raccourci applicatif JSON encapsulé dans le RDATA du type 252 et l'alignement RFC (flux d'enregistrements binarisés encadré par le SOA).
+
+\subsubsection{Rechargement à chaud et surveillance de fichier}
+% TODO: Expliquer l'évolution de l'architecture du rechargement.
+% % [À MENTIONNER]: Abandon de l'interception SIGHUP (non supportée sous Windows) au profit d'un thread d'arrière-plan de surveillance par polling du mtime (os.path.getmtime).
+
+\subsection{Architecture Orientée Objet et Moteur Itératif}
+
+\subsubsection{Conception des classes}
+% TODO: Présenter les choix de composition vs héritage.
+% - Insérer le Diagramme de Classes final complet.
+
+\subsubsection{Analyse de la condition d'arrêt itérative}
+% TODO: Détailler la boucle de résolution dans IterativeEngine.
+% % [À MENTIONNER]: Analyse logique de la condition d'arrêt de la récursion : justification de l'utilisation d'opérateurs 'OR' (response.answers OR response.rcode != NOERROR OR response.aa == 1).

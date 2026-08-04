@@ -1,0 +1,28 @@
+\section{Analyse fonctionnelle}
+\subsection{Vision globale du système}
+% TODO: Insérer et commenter le Schéma Conceptuel de l'infrastructure globale.
+% \begin{figure}[htbp]
+%   \centering
+%   \include{diagrams/schema_conceptuel}
+%   \caption{Architecture globale des flux entre le Client, le Résolveur et la Hiérarchie DNS.}
+% \end{figure}
+% - Expliquer le trajet d'une requête de bout en bout (Client -> Résolveur -> Racine -> TLD -> Autorité).
+
+\subsection{Épic 1 : L'Outil Client (CLI)}
+% TODO: Insérer le Use Case Diagram du Client.
+% - Lister et détailler les US-1.1 à US-1.6 (envoi de requêtes, parsing d'arguments, affichage formaté).
+
+\subsection{Épic 2 : Le Serveur Récursif (Le Chef d'orchestre)}
+% TODO: Insérer le Use Case Diagram du Résolveur Récursif.
+% - Lister et détailler les US-2.1 à US-2.7 (moteur itératif, cache, fallback TCP).
+% - Explain administration feature: interception de la demande 'flush.cache.local' (TXT).
+% % [À MENTIONNER]: Règle métier stricte : rejet systématique des requêtes reçues avec RD=0 via le code RCODE 5 (REFUSED).
+
+\subsection{Épic 3 : Le Serveur d'Autorité (La Base de données)}
+% TODO: Insérer le Use Case Diagram du NameServer.
+% - Lister et détailler les US-3.1 à US-3.6 (chargement de zone, réponses autoritaires, hot-reload).
+
+\subsection{Épics 4 et 5 : Tolérance aux pannes et Qualité}
+% TODO: Présenter les fonctionnalités avancées.
+% - Épic 4 (US-4.1 à US-4.5) : Mécanismes de réplication Master/Slave (AXFR et NOTIFY).
+% - Épic 5 (US-5.1) : Exigences de qualité et couverture par tests unitaires.

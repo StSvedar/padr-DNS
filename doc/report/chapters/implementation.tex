@@ -1,0 +1,27 @@
+\section{Implémentation}
+\subsection{Arborescence du Projet}
+% TODO: Insérer et expliquer l'arborescence des dossiers (core/, name_server/, recursive_resolver/, client/, tests/).
+
+\subsection{Qualité et Tests (TDD)}
+% TODO: Présenter la suite de tests automatisée.
+% - Utilisation de pytest pour exécuter les 39+ tests unitaires.
+% - Utilisation de unittest.mock pour simuler l'environnement réseau et les timestamps (time.time).
+% % [À MENTIONNER]: Stratégie de test des threads d'arrière-plan (mocking de os.path.getmtime et os.utime pour simuler les modifications de fichiers de zone).
+
+\subsection{Déploiement sous Docker}
+% TODO: Expliquer l'orchestration multi-conteneurs.
+% - Configuration du réseau Docker statique (10.53.0.0/16) indispensable pour fixer l'IP des serveurs autoritaires et des Glue Records.
+% - Utilisation de PYTHONUNBUFFERED=1 pour le suivi temps réel des logs.
+% % [À MENTIONNER]: Le piège des Inodes Docker : Résolution du bug de rechargement en montant le répertoire parent (../zones:/app/zones) plutôt que des fichiers isolés pour préserver la liaison d'inode lors des sauvegardes atomiques de l'hôte.
+% % [À MENTIONNER]: Procédure d'interrogation et configuration de nslookup pour le débogage (passage obligatoire par le mode interactif : 'set port=10054', 'server 127.0.0.1').
+
+\subsection{Refactoring et Retours d'Expérience de Terrain}
+
+\subsubsection{Capsules typées et gestion de la mémoire}
+% TODO: Expliquer la transition des structures dictionnaires vers des objets typés (DNSQuestion, ResourceRecord, DNSMessage).
+% - Utilisation de copy.deepcopy() dans le cache manager pour prévenir la corruption des objets partagés entre requêtes.
+
+\subsubsection{Bugs critiques identifiés et résolus}
+% TODO: Retour sur les corrections majeures lors du développement.
+% % [À MENTIONNER]: Le bug du typage Enum : Correction des échecs de comparaison silencieux entre String ("NS") et RecordType.NS dans la recherche de délégations de ZoneData.
+% % [À MENTIONNER]: Le piège de la référence mémoire lors du hot-reload : Mise à jour in-place de l'instance ZoneData existante via load_from_dict() au lieu de réinstancier l'objet (ce qui brisait la référence détenue par le moteur AuthoritativeEngine).

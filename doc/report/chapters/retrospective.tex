@@ -1,0 +1,12 @@
+\section{Analyse retrospective}
+\subsection{Bilan des résultats}
+% TODO: Évaluer l'atteinte des objectifs.
+% - Conformité validée avec la RFC 1035.
+% - Validation des scénarios de résolution complète de bout en bout (Client -> Résolveur -> Root -> TLD -> Auth).
+
+\subsection{Limites et perspectives d'améliorations}
+% TODO: Identifier les axes d'évolution futurs.
+% - Concurrence : Limites du modèle Thread-per-connection et opportunité d'une refonte asynchrone avec asyncio.
+% - Support protocolaire : Gestion complète des extensions EDNS0 et des gros paquets UDP (PATH MTU).
+% - Persistance : Persistance sur disque du cache DNS pour éviter le démarrage à froid.
+% - Sécurité : Implémentation de la validation DNSSEC (signatures cryptographiques RRSIG/DNSKEY).
