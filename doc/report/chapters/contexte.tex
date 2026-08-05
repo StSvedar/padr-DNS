@@ -1,3 +1,9 @@
+\section{Analyse du contexte}
+\subsection{Introduction au protocole DNS}
+% TODO: Présenter les principes fondamentaux du DNS.
+% - La structure arborescente des noms de domaine.
+% - La hiérarchie des serveurs : Root (.), TLD (.be), Serveurs Autoritaires.
+% - La différence entre résolution récursive (vue client) et itérative (vue résolveur).
 
 \subsection{Objectif du projet}
 % TODO: Rédiger l'objectif global du projet.
@@ -6,25 +12,51 @@
 
 \subsection{Périmètre et limites du système}
 % TODO: Définir ce qui est implémenté et ce qui est exclu.
-% - Inclus : Résolution itérative, gestion du cache, fallback TCP, réplication AXFR/NOTIFY, hot-reload.
+% - Inclus : Résolution itérative A/AAAA, client, gestion du cache, fallback TCP, réplication AXFR/NOTIFY, hot-reload, interopérabilité.
 % - Exclus : Signatures DNSSEC, interface graphique (GUI), support IPv6 avancé (si limité à l'IPv4).
+Le périmètre de cette implémentation inclut la résolution itérative des enregistrements A (ipv4) et AAAA (ipv6),
+la gestion d'un cache local, le fallback vers TCP pour les réponses volumineuses,
+ainsi que la réplication des zones via AXFR et NOTIFY.
+Le système est conçu pour être interopérable avec les outils existants tels que dig et nslookup.
 
-\subsection{Organisation du document}
-% TODO: Présenter rapidement le déroulé des chapitres suivants (Contexte, Analyse Fonctionnelle, Analyse Technique, Implémentation, Rétrospective, Note IAG).
+Le cahier des charges n'inclut donc pas la mise en œuvre de signatures DNSSEC, le chiffrement, le support des requêtes en IPv6 (même si les enregistrements AAAA sont supportés), ni l'extention EDNS0 permettant de négocier des tailles de trames supérieures à 512 octets en UDP.
 
-\subsection{Le fonctionnement du protocole DNS}
-% TODO: Présenter les principes fondamentaux du DNS.
-% - La structure arborescente des noms de domaine.
-% - La hiérarchie des serveurs : Root (.), TLD (.be), Serveurs Autoritaires.
-% - La différence entre résolution récursive (vue client) et itérative (vue résolveur).
+L'architecture du système doit cependant faciliter l'ajout éventuel de ces fonctionnalités.
 
-\subsection{La contrainte « Vanilla Python »}
+\subsection{La contrainte de python}
+Le language de programmation Python est imposé par les consignes du projet pour la réalisation du programme.
+Python est un langage de haut niveau, dynamiquement typé, interprété et multiparadigmes, il est apprécié pour sa lisibilité et sa simplicité.
+Dans le cadre de ce projet, la présence des mécanismes orientés objet, de la gestion automatique de la mémoire et d'une bibliothèque standard riche (\texttt{struct}, \texttt{socket}, \texttt{threading}, \texttt{json}) sont d'une utilité considérable.
+Cependant, l'envoi de messages binaires et la gestion de sockets devant être implémentés manuellement, l'abstraction offerte par Python parfois devenir une gêne.
+Contrairement à des langages de plus bas niveau (comme le C++) qui permettent d'utiliser des structures avec des pointeurs pour lire les données binaires directement, Python demande un travail constant et explicite de sérialisation et désérialisation.
+Heureusement, le module \texttt{struct} permet de faire le pont entre les objets de haut niveau manipulés par le code et les trames binaires brutes exigées par le réseau.
+
+\subsection{Choix de la bibliothèque standard}
 % TODO: Expliquer les règles imposées pour ce projet.
 % - Développement exclusivement avec la bibliothèque standard Python (struct, socket, threading, etc.).
 % - Interdiction des bibliothèques tierces comme dnspython pour le cœur de protocole.
 % % [À MENTIONNER]: L'absence de support POSIX natif sous Windows (notamment pour SIGHUP), imposant de trouver des mécanismes multiplateformes.
+Dans l'intérêt pédagogique du projet, il est interdit de déléguer l'implémentation de certaines parties du système à des bibliothèques tierces.
+Afin de ne pas risquer de manquer à cette contrainte, l'ensemble du projet a été développé en utilisant exclusivement la bibliothèque standard Python.
+
+Hors du respect de la contrainte académique, ce choix présente de multiples bénéfices :
+\begin{itemize}
+    \item \textbf{Portabilité et absence de dépendances :}
+    Le projet peut être exécuté sur n'importe quelle machine disposant d'une installation Python standard, sans nécessiter l'installation de modules supplémentaires.
+    \item \textbf{Pérennité et stabilité à long terme :}
+    Les bibliothèques tierces disponibles sur PyPi évoluent rapidement et peuvent déprécier certaines fonctions ou être complètement abandonnées ce qui crée une dette technique.
+    À l'inverse, un projet basé sur la bibliothèque standard Python restera maintenable et fonctionnel sur le long terme.
+    \item \textbf{Légèreté et optimisation :}
+    Les bibliothèques externes introduisent des fonctions superflues et des dépendances inutiles.
+    En se limitant à la bibliothèque standard, nous avons la garantie que le code n'inclut que le nécessaire.
+    \item \textbf{Sécurité et maîtrise de la chaîne logistique :}
+    Dans le contexte de la cybersécurité moderne, dépendre de multiples paquets externes expose le projet à des failles de type Supply Chain Attack.
+    Restreindre le projet à la bibliothèque standard garantit que la surface d'attaque est limitée à Python lui-même.
+\end{itemize}
 
 \subsection{L'interopérabilité et le respect de la RFC 1035}
 % TODO: Développer les enjeux d'interopérabilité.
 % - Nécessité de respecter scrupuleusement le format de trame binaire de 1987.
 % - Garantir la compatibilité ascendante avec des outils système réels (dig, nslookup, host).
+Afin de garantir l'interopérabilité avec les outils existants, le projet doit respecter le format de trame binaire défini par la RFC 1035. % TODO: citation
+Le respect de cette norme permettra au système de communiquer correctement avec les serveurs DNS existants et d'assurer la compatibilité avec des outils tels que dig ou nslookup.

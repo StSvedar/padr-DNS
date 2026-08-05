@@ -1,28 +1,123 @@
 \section{Analyse fonctionnelle}
 \subsection{Vision globale du système}
 % TODO: Insérer et commenter le Schéma Conceptuel de l'infrastructure globale.
-% \begin{figure}[htbp]
-%   \centering
-%   \include{diagrams/schema_conceptuel}
-%   \caption{Architecture globale des flux entre le Client, le Résolveur et la Hiérarchie DNS.}
-% \end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/concept.png}
+    \caption{Architecture globale des flux entre le Client, le Résolveur et la Hiérarchie DNS.}
+    \label{fig:schéma_conceptuel}
+\end{figure}
 % - Expliquer le trajet d'une requête de bout en bout (Client -> Résolveur -> Racine -> TLD -> Autorité).
+Le processus de résolution d'un nom de domaine s'articule autour des trois niveaux d'infrastructure présentés dans le schéma :
 
-\subsection{Épic 1 : L'Outil Client (CLI)}
+\begin{enumerate}
+    \item \textbf{Émission de la requête initiale (Réseau Utilisateur Local) :}
+    L'utilisateur saisit une commande réseau (ex: \texttt{dig} ou le client Python). Le \texttt{Client CLI} génère une trame DNS en activant le bit \texttt{RD=1} (\textit{Recursion Desired}), signalant au résolveur qu'il souhaite obtenir une réponse finale complète sans effectuer lui-même les étapes itératives.
+
+    \item \textbf{Prise en charge par le résolveur (Réseau Opérateur / FAI) :}
+    La requête parvient au \texttt{Serveur Récursif / Cache}. Ce dernier interroge en premier lieu son cache local :
+    \begin{itemize}
+        \item \textbf{En cas de succès (\textit{Cache Hit}) :} La réponse est directement retournée au client avec le bit \texttt{AA=0} et le TTL décrémenté.
+        \item \textbf{En cas d'échec (\textit{Cache Miss}) :} Le résolveur initie la chaîne de résolution itérative vers la hiérarchie DNS.
+    \end{itemize}
+
+    \item \textbf{Cycle de résolution itérative (Serveurs de Noms) :}
+    \begin{itemize}
+        \item \textbf{1. Première itération (Racine) :} Le résolveur interroge le \texttt{Serveur Racine Master} (ou bascule vers le serveur de secours répliqué si le master est hors service, selon la route \textit{1b. Secours si Master HS}). Le serveur racine répond par une délégation vers les serveurs de noms du TLD concerné.
+        \item \textbf{2. Deuxième itération (TLD) :} Le résolveur contacte le \texttt{Serveur TLD} (ex: \texttt{.be}), qui lui retourne l'adresse IP et les \textit{Glue Records} du serveur autoritaire responsable du domaine.
+        \item \textbf{3. Troisième itération (Autorité) :} Le résolveur interroge le \texttt{Serveur Autoritaire de Zone}. Ce dernier consulte sa zone locale et renvoie la réponse autoritaire finale (\texttt{AA=1}) contenant les enregistrements demandés (ex: enregistrement \texttt{A}).
+    \end{itemize}
+
+    \item \textbf{Mécanisme de réplication sous-jacent :}
+    En arrière-plan, l'intégrité des données entre les serveurs primaires et secondaires est maintenue via le mécanisme de réplication Master/Slave basculant sur les protocoles \texttt{NOTIFY} (signalement de modification) et \texttt{AXFR} (transfert de zone complet).
+
+    \item \textbf{Finalisation et mise en cache :}
+    Une fois la réponse enregistrée auprès du serveur d'autorité, le résolveur récursif met en cache le résultat pour la durée spécifiée par le TTL, puis transmet la trame de réponse finale au \texttt{Client CLI}.
+\end{enumerate}
+
+
+\subsection{User stories}
+L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{User Stories} (US) et des \textit{Épics} correspondants, qui décrivent les fonctionnalités attendues du système du point de vue de l'utilisateur final.
+
+\subsubsection{Épic 1 : L'Outil Client (CLI)}
 % TODO: Insérer le Use Case Diagram du Client.
 % - Lister et détailler les US-1.1 à US-1.6 (envoi de requêtes, parsing d'arguments, affichage formaté).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/usecase_client.png}
+    \caption{Diagramme de cas d'utilisation du Client CLI.}
+    \label{fig:usecase_client}
+\end{figure}
 
-\subsection{Épic 2 : Le Serveur Récursif (Le Chef d'orchestre)}
+\begin{itemize}
+    \item \textbf{US-1.1 :} En tant qu'utilisateur, je veux pouvoir tester toutes les fonctionnalités du système depuis un client CLI afin de pouvoir vérifier son bon fonctionnement.
+    
+    \item \textbf{US-1.2 :} En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv4 (Type A) afin de pouvoir me connecter au serveur cible.
+    
+    \item \textbf{US-1.3 :} En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv6 (Type AAAA) afin de pouvoir me connecter au serveur cible sur un réseau moderne.
+    
+    \item \textbf{US-1.4 :} En tant qu'utilisateur, je veux pouvoir envoyer un signal d'administration au serveur récursif afin de vider son cache à distance pour du diagnostic.
+    
+    \item \textbf{US-1.5 :} En tant qu'utilisateur, je veux pouvoir désactiver la récursion (`RD=0`) via une option du CLI afin d'interroger un serveur de manière ciblée pour du diagnostic.
+    
+    \item \textbf{US-1.6 :} En tant qu'utilisateur, je veux pouvoir utiliser la solution sur mon ordinateur personnel en me limitant à de la configuration réseau pour que mon ordinateur effectue les résolutions de façon transparente.
+    
+\end{itemize}
+
+\subsubsection{Épic 2 : Le Serveur Récursif (Le Chef d'orchestre)}
 % TODO: Insérer le Use Case Diagram du Résolveur Récursif.
 % - Lister et détailler les US-2.1 à US-2.7 (moteur itératif, cache, fallback TCP).
 % - Explain administration feature: interception de la demande 'flush.cache.local' (TXT).
 % % [À MENTIONNER]: Règle métier stricte : rejet systématique des requêtes reçues avec RD=0 via le code RCODE 5 (REFUSED).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/usecase_resolver.png}
+    \caption{Diagramme de cas d'utilisation du Résolveur Récursif.}
+    \label{fig:usecase_resolver}
+\end{figure}
 
-\subsection{Épic 3 : Le Serveur d'Autorité (La Base de données)}
+\begin{itemize}
+    \item \textbf{US-2.1 :} En tant que résolveur, je veux écouter sur le port UDP 53 et désérialiser la trame binaire entrante afin d'extraire le nom de domaine et le type de requête demandés.
+    \item \textbf{US-2.2 :} En tant que résolveur, je veux interroger mon cache interne avant d'émettre une requête sur le réseau afin d'accélérer drastiquement le temps de réponse.
+    \item \textbf{US-2.3 :} En tant que résolveur, je veux implémenter la boucle de délégation (Root -> TLD -> Autorité) afin de trouver la réponse à la requête.
+    \item \textbf{US-2.4 :} En tant que résolveur, je veux extraire le TTL des réponses positives (A/AAAA) et les stocker en mémoire afin de construire mon cache.
+    \item \textbf{US-2.5 :} En tant que résolveur, je veux lire l'enregistrement SOA lors d'une erreur *NXDOMAIN* afin de mettre cette absence en cache (Negative Caching).
+    \item \textbf{US-2.6 :} En tant que résolveur, si une réponse UDP contient le flag `TC=1` (Tronqué), je veux relancer automatiquement ma requête via TCP afin d'obtenir la donnée complète.
+    \item \textbf{US-2.7 :} En tant que résolveur, je veux intercepter les messages d'administration du client afin de vider instantanément ma structure de données de cache en RAM.
+\end{itemize}
+
+\subsubsection{Épic 3 : Le Serveur d'Autorité (La Base de données)}
 % TODO: Insérer le Use Case Diagram du NameServer.
 % - Lister et détailler les US-3.1 à US-3.6 (chargement de zone, réponses autoritaires, hot-reload).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/usecase_nameserver.png}
+    \caption{Diagramme de cas d'utilisation du Serveur de Nom.}
+    \label{fig:usecase_nameserver}
+\end{figure}
 
-\subsection{Épics 4 et 5 : Tolérance aux pannes et Qualité}
+\begin{itemize}
+    \item \textbf{US-3.1 :} En tant que serveur de nom, je veux charger ma base de données (Zone) depuis un fichier JSON au démarrage afin de connaître les enregistrements sous ma responsabilité.
+    \item \textbf{US-3.2 :} En tant que serveur de nom, si la requête correspond à une IP que je connais, je veux renvoyer une réponse autoritaire (`AA=1`) contenant la ou les IP (RRSets) dans la section *Answer*.
+    \item \textbf{US-3.3 :} En tant que serveur de nom, si je ne gère qu'une portion du domaine (ex: Root ou TLD), je veux renvoyer une délégation (enregistrement NS) dans la section *Authority* afin que le serveur récursif puisse continuer sa recherche.
+    \item \textbf{US-3.4 :} En tant que serveur de nom, lors d'une délégation, je veux inclure l'adresse IP du serveur délégué dans la section *Additional* (Glue Record) afin de faire gagner du temps au résolveur.
+    \item \textbf{US-3.5 :} En tant que serveur de nom, je veux implémenter l'algorithme de compression (pointeur `11xxxxxx`) lors de la création de ma réponse binaire afin de ne pas saturer la limite de 512 octets de l'UDP.
+    \item \textbf{US-3.6 :} En tant qu'administrateur, je veux pouvoir déclencher le rechargement du fichier JSON "à chaud" (sans redémarrer le processus du serveur) afin d'ajouter ou modifier des enregistrements sans provoquer d'interruption de service.
+\end{itemize}
+
+\subsubsection{Épic 4 : Tolérance aux Pannes \& Réplication (Master / Slave)}
 % TODO: Présenter les fonctionnalités avancées.
 % - Épic 4 (US-4.1 à US-4.5) : Mécanismes de réplication Master/Slave (AXFR et NOTIFY).
+\begin{itemize}
+    \item \textbf{US-4.1 :} En tant que serveur Racine Réplica (Slave), je veux me connecter en TCP au serveur Racine Master à mon démarrage et demander un transfert de zone complet (AXFR) afin d'obtenir la configuration initiale.
+    \item \textbf{US-4.2 :} En tant que serveur Racine Master, je veux accepter les requêtes de type AXFR en TCP et renvoyer l'intégralité de mon fichier de zone afin d'assurer la redondance requise.
+    \item \textbf{US-4.3 :} En tant que serveur Racine Master, lorsque mon fichier JSON est modifié, je veux envoyer un message UDP (OpCode 4, NOTIFY) à mon Slave afin de le prévenir instantanément d'un changement.
+    \item \textbf{US-4.4 :} En tant que serveur Racine Réplica (Slave), à la réception d'un NOTIFY ou après l'expiration de mon timer de Refresh, je veux comparer mon numéro de série (SOA) avec celui du Master afin de savoir si je dois me mettre à jour.
+    \item \textbf{US-4.5 :} En tant que serveur Racine Réplica, si le numéro de série du Master est plus grand, je veux effectuer une requête de transfert incrémental (IXFR) en TCP pour télécharger uniquement les nouveaux enregistrements.
+\end{itemize}
+
+\subsection{Épic 5 : Environnement, Qualité et Méthodologie (En tant que Dev)}
 % - Épic 5 (US-5.1) : Exigences de qualité et couverture par tests unitaires.
+\begin{itemize}
+    \item \textbf{US-5.1 :} En tant que développeur, je veux qu'un pipeline d'Intégration Continue exécute automatiquement mes tests unitaires à chaque push afin de valider la non-régression de mon code.
+\end{itemize}

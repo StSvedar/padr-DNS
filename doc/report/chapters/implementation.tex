@@ -14,6 +14,10 @@
 % - Utilisation de PYTHONUNBUFFERED=1 pour le suivi temps réel des logs.
 % % [À MENTIONNER]: Le piège des Inodes Docker : Résolution du bug de rechargement en montant le répertoire parent (../zones:/app/zones) plutôt que des fichiers isolés pour préserver la liaison d'inode lors des sauvegardes atomiques de l'hôte.
 % % [À MENTIONNER]: Procédure d'interrogation et configuration de nslookup pour le débogage (passage obligatoire par le mode interactif : 'set port=10054', 'server 127.0.0.1').
+Le projet est déployé dans un environnement \textit{Docker Compose}, permettant de simuler un réseau DNS complet avec des serveurs de noms et un résolveur récursif.
+De cette manière, il est possible d'essayer le code en instanciant plusieurs serveurs sur une machine unique.
+
+
 
 \subsection{Refactoring et Retours d'Expérience de Terrain}
 
@@ -25,3 +29,4 @@
 % TODO: Retour sur les corrections majeures lors du développement.
 % % [À MENTIONNER]: Le bug du typage Enum : Correction des échecs de comparaison silencieux entre String ("NS") et RecordType.NS dans la recherche de délégations de ZoneData.
 % % [À MENTIONNER]: Le piège de la référence mémoire lors du hot-reload : Mise à jour in-place de l'instance ZoneData existante via load_from_dict() au lieu de réinstancier l'objet (ce qui brisait la référence détenue par le moteur AuthoritativeEngine).
+% % [À MENTIONNER]: Le bug du resource type inconnu (EDNS0) : Correction en levant un warning plutot qu'une exception
