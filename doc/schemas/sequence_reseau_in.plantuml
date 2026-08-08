@@ -1,0 +1,28 @@
+@startuml
+title Diagramme de Séquence - Réception d'un message (DNSListener)
+
+actor ClientExterne as "Émetteur Externe\n(Client CLI, Résolveur, ou Slave)"
+box "Composant Serveur (RecursiveResolver ou BaseNameServer)" #AliceBlue
+    participant Listener as "DNSListener\n(Sockets UDP/53 & TCP/53)"
+    participant Handler as "Callback Applicatif\n(_handle_client_request)"
+end box
+
+ClientExterne ->> Listener: Envoi d'une trame DNS (UDP ou TCP)
+
+alt Flux UDP
+    Listener -> Listener: Réception du datagramme
+    Listener ->> Handler: Exécution dans un Thread dédié
+    Handler -> Handler: Dépaquetage (DNSMessage.unpack) & Logique métier
+    Handler -->> Listener: Retourne les octets de réponse
+    Listener -->> ClientExterne: Renvoi du datagramme UDP
+else Flux TCP
+    Listener -> Listener: Acceptation connexion socket TCP
+    Listener -> Listener: Lecture préfixe (2 octets de taille N)
+    Listener -> Listener: Lecture des N octets du message
+    Listener ->> Handler: Exécution dans un Thread dédié
+    Handler -> Handler: Dépaquetage (DNSMessage.unpack) & Logique métier
+    Handler -->> Listener: Retourne les octets de réponse
+    Listener -> Listener: Ajout du préfixe de taille (2 octets)
+    Listener -->> ClientExterne: Envoi du flux TCP
+end
+@startuml

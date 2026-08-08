@@ -7,3 +7,5 @@ main.log
 main.synctex.gz
 main.toc
 main.out
+main.blg
+pdflatex*.fls

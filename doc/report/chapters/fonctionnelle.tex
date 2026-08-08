@@ -35,7 +35,6 @@ Le processus de résolution d'un nom de domaine s'articule autour des trois nive
     Une fois la réponse enregistrée auprès du serveur d'autorité, le résolveur récursif met en cache le résultat pour la durée spécifiée par le TTL, puis transmet la trame de réponse finale au \texttt{Client CLI}.
 \end{enumerate}
 
-
 \subsection{User stories}
 L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{User Stories} (US) et des \textit{Épics} correspondants, qui décrivent les fonctionnalités attendues du système du point de vue de l'utilisateur final.
 
@@ -51,15 +50,10 @@ L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{U
 
 \begin{itemize}
     \item \textbf{US-1.1 :} En tant qu'utilisateur, je veux pouvoir tester toutes les fonctionnalités du système depuis un client CLI afin de pouvoir vérifier son bon fonctionnement.
-    
     \item \textbf{US-1.2 :} En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv4 (Type A) afin de pouvoir me connecter au serveur cible.
-    
     \item \textbf{US-1.3 :} En tant qu'utilisateur, je veux pouvoir résoudre un nom de domaine en adresse IPv6 (Type AAAA) afin de pouvoir me connecter au serveur cible sur un réseau moderne.
-    
     \item \textbf{US-1.4 :} En tant qu'utilisateur, je veux pouvoir envoyer un signal d'administration au serveur récursif afin de vider son cache à distance pour du diagnostic.
-    
     \item \textbf{US-1.5 :} En tant qu'utilisateur, je veux pouvoir désactiver la récursion (`RD=0`) via une option du CLI afin d'interroger un serveur de manière ciblée pour du diagnostic.
-    
     \item \textbf{US-1.6 :} En tant qu'utilisateur, je veux pouvoir utiliser la solution sur mon ordinateur personnel en me limitant à de la configuration réseau pour que mon ordinateur effectue les résolutions de façon transparente.
     
 \end{itemize}
@@ -81,7 +75,7 @@ L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{U
     \item \textbf{US-2.2 :} En tant que résolveur, je veux interroger mon cache interne avant d'émettre une requête sur le réseau afin d'accélérer drastiquement le temps de réponse.
     \item \textbf{US-2.3 :} En tant que résolveur, je veux implémenter la boucle de délégation (Root -> TLD -> Autorité) afin de trouver la réponse à la requête.
     \item \textbf{US-2.4 :} En tant que résolveur, je veux extraire le TTL des réponses positives (A/AAAA) et les stocker en mémoire afin de construire mon cache.
-    \item \textbf{US-2.5 :} En tant que résolveur, je veux lire l'enregistrement SOA lors d'une erreur *NXDOMAIN* afin de mettre cette absence en cache (Negative Caching).
+    \item \textbf{US-2.5 :} En tant que résolveur, je veux lire l'enregistrement SOA lors d'une erreur \textit{NXDOMAIN} afin de mettre cette absence en cache (Negative Caching).
     \item \textbf{US-2.6 :} En tant que résolveur, si une réponse UDP contient le flag `TC=1` (Tronqué), je veux relancer automatiquement ma requête via TCP afin d'obtenir la donnée complète.
     \item \textbf{US-2.7 :} En tant que résolveur, je veux intercepter les messages d'administration du client afin de vider instantanément ma structure de données de cache en RAM.
 \end{itemize}
@@ -98,9 +92,9 @@ L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{U
 
 \begin{itemize}
     \item \textbf{US-3.1 :} En tant que serveur de nom, je veux charger ma base de données (Zone) depuis un fichier JSON au démarrage afin de connaître les enregistrements sous ma responsabilité.
-    \item \textbf{US-3.2 :} En tant que serveur de nom, si la requête correspond à une IP que je connais, je veux renvoyer une réponse autoritaire (`AA=1`) contenant la ou les IP (RRSets) dans la section *Answer*.
-    \item \textbf{US-3.3 :} En tant que serveur de nom, si je ne gère qu'une portion du domaine (ex: Root ou TLD), je veux renvoyer une délégation (enregistrement NS) dans la section *Authority* afin que le serveur récursif puisse continuer sa recherche.
-    \item \textbf{US-3.4 :} En tant que serveur de nom, lors d'une délégation, je veux inclure l'adresse IP du serveur délégué dans la section *Additional* (Glue Record) afin de faire gagner du temps au résolveur.
+    \item \textbf{US-3.2 :} En tant que serveur de nom, si la requête correspond à une IP que je connais, je veux renvoyer une réponse autoritaire (`AA=1`) contenant la ou les IP (RRSets) dans la section \textit{Answer}.
+    \item \textbf{US-3.3 :} En tant que serveur de nom, si je ne gère qu'une portion du domaine (ex: Root ou TLD), je veux renvoyer une délégation (enregistrement NS) dans la section \textit{Authority} afin que le serveur récursif puisse continuer sa recherche.
+    \item \textbf{US-3.4 :} En tant que serveur de nom, lors d'une délégation, je veux inclure l'adresse IP du serveur délégué dans la section \textit{Additional} (Glue Record) afin de faire gagner du temps au résolveur.
     \item \textbf{US-3.5 :} En tant que serveur de nom, je veux implémenter l'algorithme de compression (pointeur `11xxxxxx`) lors de la création de ma réponse binaire afin de ne pas saturer la limite de 512 octets de l'UDP.
     \item \textbf{US-3.6 :} En tant qu'administrateur, je veux pouvoir déclencher le rechargement du fichier JSON "à chaud" (sans redémarrer le processus du serveur) afin d'ajouter ou modifier des enregistrements sans provoquer d'interruption de service.
 \end{itemize}

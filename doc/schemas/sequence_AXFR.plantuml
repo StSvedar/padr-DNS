@@ -3,24 +3,25 @@ actor Admin
 participant Master
 participant Slave
 
-Admin->>Master: Modifie le JSON & Envoie SIGHUP
-ref over Master: Rechargement à chaud (ZoneLoader)
+Admin -> Master: Modifie le fichier JSON de zone sur disque
+ref over Master: Détection automatique (ZoneLoader : Polling mtime)
+ref over Master: Rechargement in-place (ZoneData.load_from_dict)
 
-Master->>Slave: UDP Port 53 : NOTIFY (OpCode 4)
-Slave-->>Master: UDP Port 53 : ACK NOTIFY (QR=1)
+Master ->> Slave: UDP Port 53 : NOTIFY (OpCode 4)
+Slave -->> Master: UDP Port 53 : ACK NOTIFY (QR=1)
 
-Note over Slave: Le Slave constate que son Serial est obsolète
+Note over Slave: Le Slave valide la notification de changement
 
-Slave->>Master: [SYN] Ouvre une connexion TCP sur port 53
-Master-->>Slave: [SYN, ACK] Connexion acceptée
+Slave ->> Master: [SYN] Ouvre une connexion TCP sur port 53
+Master -->> Slave: [SYN, ACK] Connexion acceptée
 
-ref over Slave: Ajoute 2 octets (Taille) avant la trame DNS
-Slave->>Master: TCP : Demande AXFR (QTYPE=252)
+ref over Slave: Préfixe de 2 octets (Taille) + Trame DNS
+Slave ->> Master: TCP : Demande AXFR (QTYPE=252)
 
-ref over Master: Compile toute la zone JSON
-ref over Master: Ajoute 2 octets (Taille) avant la réponse
-Master-->>Slave: TCP : Réponse AXFR (SOA ... Enregistrements ... SOA)
+ref over Master: Construction du flux de réponse AXFR
+ref over Master: Préfixe de 2 octets (Taille) + Trame DNS
+Master -->> Slave: TCP : Réponse AXFR (SOA ... Enregistrements ... SOA)
 
-Slave->>Master: [FIN] Ferme la connexion TCP
-ref over Slave: Met à jour son AuthoritativeEngine local
+Slave ->> Master: [FIN] Ferme la connexion TCP
+ref over Slave: Mise à jour in-place de la ZoneData du Slave
 @enduml
