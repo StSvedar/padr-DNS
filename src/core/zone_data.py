@@ -1,10 +1,11 @@
+import json
 from src.core.resource_record import ResourceRecord
 from src.core.enums import RecordType
 
 class ZoneData:
     def __init__(self, name: str = ".", zone_dict: dict[str, dict[str, list[dict]]] = {}):
         self.name = name.lower()
-        # Structure interne typée : { "test.be": { RecordType.A: [ResourceRecord, ...] } }
+        # Ex : { "test.be": { RecordType.A: [ResourceRecord, ...] } }
         self._records: dict[str, dict[RecordType, list[ResourceRecord]]] = {}
 
         if zone_dict:
