@@ -6,7 +6,7 @@ Il est donc essentiel de simplifier au maximum la lecture, la création et la (d
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/msg_format.png}
+    \includegraphics[width=15cm]{figures/technique/msg_format.png}
     \caption{Format des messages DNS~\cite{steven2012tcp}.}
     \label{fig:format_de_message}
 \end{figure}
@@ -32,7 +32,7 @@ Enfin, la classe \texttt{DomainName} centralise la compression.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/class_message.png}
+    \includegraphics[width=15cm]{figures/technique/class_message.png}
     \caption{Diagramme de classe de la Forge à messages.}
     \label{fig:class_diagram_messages}
 \end{figure}
@@ -105,7 +105,7 @@ Notre classe \texttt{DNSRequester} gère l'ajout et le retrait de ce préfixe de
 \subsubsection{Générisité de l'architecture}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/class_reseau.png}
+    \includegraphics[width=15cm]{figures/technique/class_reseau.png}
     \caption{Diagramme de classes de l'architecture réseau.}
     \label{fig:diagramme_classes_reseau}
 \end{figure}
@@ -117,7 +117,7 @@ La réception des requêtes est entièrement gérée par cette classe.
 Une fois la requête interceptée, elle est transmise à une fonction de rappel (\texttt{callback}) fournie par le composant appelant.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/sequence_reseau_in.png}
+    \includegraphics[width=15cm]{figures/technique/sequence_reseau_in.png}
     \caption{Séquence de communication pour les requêtes entrantes.}
     \label{fig:sequence_reseau_in}
 \end{figure}
@@ -128,7 +128,7 @@ C'est le composant appelant qui est responsable de la création de la requête a
 Dans le cas d'une réponse tronquée, c'est le composant appelant qui décide de relancer la requête en TCP.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/sequence_reseau_out.png}
+    \includegraphics[width=15cm]{figures/technique/sequence_reseau_out.png}
     \caption{Séquence de communication pour les requêtes sortantes.}
     \label{fig:sequence_reseau_out}
 \end{figure}
@@ -136,7 +136,7 @@ Dans le cas d'une réponse tronquée, c'est le composant appelant qui décide de
 \subsection{Résolution DNS}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/sequence_resolver.png}
+    \includegraphics[width=15cm]{figures/technique/sequence_resolver.png}
     \caption{Diagramme de séquence de la résolution.}
     \label{fig:sequence_resolver}
 \end{figure}
@@ -199,7 +199,7 @@ Elle peut être déclenchée par le client en envoyant une requête de type \tex
 \subsection{Chargement de zones}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/class_replication.png}
+    \includegraphics[width=15cm]{figures/technique/class_replication.png}
     \caption{Diagramme de classes du chargement de zones.}
     \label{fig:diagramme_classes_replication}
 \end{figure}
@@ -259,7 +259,7 @@ Cette méthode respecte l'encapsulation DNS tout en tirant pleinement parti des 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/sequence_replication.png}
+    \includegraphics[width=15cm]{figures/technique/sequence_replication.png}
     \caption{Diagramme de séquence de la réplication.}
     \label{fig:diagramme_de_sequence_replication}
 \end{figure}
@@ -270,7 +270,7 @@ Cette méthode respecte l'encapsulation DNS tout en tirant pleinement parti des 
 % - Insérer le Diagramme de Classes final complet.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/class.png}
+    \includegraphics[width=15cm]{figures/technique/class.png}
     \caption{Diagramme de classes.}
     \label{fig:diagramme_classes}
 \end{figure}
