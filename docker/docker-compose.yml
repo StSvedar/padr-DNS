@@ -1,0 +1,63 @@
+networks:
+  dns_net:
+    ipam:
+      config:
+        - subnet: 10.53.0.0/16
+
+services:
+  root_ns:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.server
+    command: ["python", "-m", "src.name_server.master.master_server"]
+    env_file:
+      - ../config/root.env
+    networks:
+      dns_net:
+        ipv4_address: 10.53.0.100
+    volumes:
+      - ../zones:/app/zones
+
+  tld_be_ns:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.server
+    command: ["python", "-m", "src.name_server.master.master_server"]
+    env_file:
+      - ../config/tld.env
+    networks:
+      dns_net:
+        ipv4_address: 10.53.0.101
+    volumes:
+      - ../zones:/app/zones
+
+  auth_test_ns:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.server
+    command: ["python", "-m", "src.name_server.master.master_server"]
+    env_file:
+      - ../config/auth_test.env
+    networks:
+      dns_net:
+        ipv4_address: 10.53.0.102
+    volumes:
+      - ../zones:/app/zones
+
+  resolver:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.server
+    command: ["python", "-m", "src.recursive_resolver.server"]
+    env_file:
+      - ../config/resolver.env
+    networks:
+      dns_net:
+        ipv4_address: 10.53.0.10
+    ports:
+      - "10054:53/udp"
+      - "10054:53/tcp"
+    depends_on:
+      - root_ns
+      - tld_be_ns
+      - auth_test_ns
