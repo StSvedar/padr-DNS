@@ -102,15 +102,15 @@ class ResourceRecord:
         ttl = record_dict.get('ttl', 300)
         
         if rtype_str == 'A':
-            return cls.create_A(name, record_dict['ip'], ttl)
+            return cls.create_A(name, record_dict.get('ip', record_dict.get('rdata')), ttl)
         if rtype_str == 'AAAA':
-            return cls.create_AAAA(name, record_dict['ip'], ttl)
+            return cls.create_AAAA(name, record_dict.get('ip', record_dict.get('rdata')), ttl)
         if rtype_str == 'NS':
-            return cls.create_NS(name, record_dict['host'], ttl)
+            return cls.create_NS(name, record_dict.get('host', record_dict.get('rdata')), ttl)
         if rtype_str == 'CNAME':
-            return cls.create_CNAME(name, record_dict['host'], ttl)
+            return cls.create_CNAME(name, record_dict.get('host', record_dict.get('rdata')), ttl)
         if rtype_str == 'TXT':
-            return cls.create_TXT(name, record_dict['text'], ttl)
+            return cls.create_TXT(name, record_dict.get('text', record_dict.get('rdata', '')), ttl)
 
         return cls.create_UNKNOWN(name, record_dict.get('rdata', b''), ttl)
         
