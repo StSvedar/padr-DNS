@@ -1,0 +1,29 @@
+@startuml
+title Architecture Réseau de l'Environnement de Test Docker Compose
+
+node "Machine Hôte" {
+    [Client CLI / nslookup] as Client
+
+    rectangle "Réseau Virtuel Docker Compose (dns_net : 10.53.0.0/16)" as DockerNet {
+        database "Volumes /app/zones\n(Montage dossier)" as Volumes
+        
+        [Résolveur Récursif\n(10.53.0.10)] as Resolver
+        [Serveur Racine Master\n(10.53.0.100)] as RootMaster
+        [Serveur Racine Slave\n(10.53.0.103)] as RootSlave
+        [Serveur TLD .be\n(10.53.0.101)] as TldNS
+        [Serveur Autoritaire\n(10.53.0.102)] as AuthNS
+    }
+}
+
+Client --> Resolver : Requête DNS\n(Port hôte 10054 -> 53)
+
+Resolver --> RootMaster : 1. Résolution itérative (Port 53)
+Resolver --> TldNS : 2. Résolution itérative (Port 53)
+Resolver --> AuthNS : 3. Résolution itérative (Port 53)
+
+RootMaster <--> RootSlave : Réplication NOTIFY / AXFR (Port 53)
+
+Volumes ..> RootMaster : Hot-Reload
+Volumes ..> TldNS : Hot-Reload
+Volumes ..> AuthNS : Hot-Reload
+@enduml
