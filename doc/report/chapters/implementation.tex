@@ -7,7 +7,17 @@ Le code source et les tests sont eux séparés en plusieurs modules : \texttt{cl
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{figures/implementation/tree.png}
+    \begin{minipage}[t]{0.49\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\linewidth]{figures/implementation/tree1.png}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\linewidth]{figures/implementation/tree2.png}
+    \end{minipage}
     \caption{Arborescence du projet.}
     \label{fig:tree}
 \end{figure}
@@ -70,7 +80,9 @@ En effet, bien que les logs indiquaient un rechargement réussi, le serveur cont
 Ce problème a été résolu en implémentant une mise à jour \textit{in-place} via la méthode \texttt{load\_from\_dict()}, permettant de vider et de réapprovisionner l'instance existante sans rompre les liaisons d'objets au sein du moteur d'exécution.
 
 \textbf{Gestion des enregistrements non pris en charge (EDNS0 / Type 41) :}\\
-Les utilitaires clients modernes comme \texttt{dig} ou \texttt{nslookup} injectent fréquemment un enregistrement pseudo-ressource de type \texttt{OPT} (Type 41, lié à l'extension EDNS0) dans la section \texttt{ADDITIONAL}. Lors de la désérialisation (\textit{unpacking}) de la trame binaire, le parseur levait une exception non interceptée face à ce type non implémenté, interrompant brutalement le traitement et renvoyant une réponse vide qui provoquait un délai d'attente (\textit{timeout}) côté client. La logique de lecture de la section \texttt{ADDITIONAL} a été assouplie : les enregistrements de type inconnu ou non supporté sont désormais ignorés de manière sécurisée avec l'émission d'un simple avertissement (\textit{warning}) dans les logs, rétablissant une compatibilité totale avec les outils d'interrogation standards.
+Les utilitaires clients modernes comme \texttt{dig} ou \texttt{nslookup} injectent fréquemment un enregistrement pseudo-ressource de type \texttt{OPT} (Type 41, lié à l'extension EDNS0) dans la section \texttt{ADDITIONAL}. Lors de la désérialisation (\textit{unpacking}) de la trame binaire, le parseur levait une exception non interceptée face à ce type non implémenté, interrompant brutalement le traitement et renvoyant une réponse vide qui provoquait un \textit{timeout} côté client.
+La logique de lecture des \textit{Resource Records} a été assouplie pour que les enregistrements de type inconnu ou non supporté soient simplement ignorés en levant \textit{warning} dans les logs.
+De cette manière, une compatibilité totale avec les outils d'interrogation standards est rétablie.
 
 
 \subsection{Déploiement sous Docker}
@@ -103,6 +115,6 @@ La configuration choisie pour répondre à la demande du client est la suivante 
 \begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{figures/implementation/infra.png}
-    \caption{Infrastructure docker.}
+    \caption{Architecture Réseau de l'Environnement de Test Docker Compose.}
     \label{fig:infra}
 \end{figure}

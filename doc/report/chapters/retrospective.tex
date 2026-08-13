@@ -3,6 +3,27 @@
 % TODO: Évaluer l'atteinte des objectifs.
 % - Conformité validée avec la RFC 1035.
 % - Validation des scénarios de résolution complète de bout en bout (Client -> Résolveur -> Root -> TLD -> Auth).
+L'évaluation des résultats s'appuie directement sur les exigences du cahier des charges initial. L'ensemble des fonctionnalités demandées a été implémenté, testé et validé sur notre infrastructure :
+
+\begin{itemize}
+    \item \textbf{Chaîne de résolution de noms :}
+    L'infrastructure de résolution globale est pleinement opérationnelle. Le résolveur récursif (\texttt{RecursiveResolver}) orchestre le parcours itératif en interrogeant successivement le serveur Racine, le serveur TLD (gestion de l'extension \texttt{.be}) et le serveur autoritaire responsable du nom de domaine complet et de ses sous-domaines (ex: \texttt{www.test.be}).
+
+    \item \textbf{Redondance du serveur Racine :}
+    La continuité de service est assurée par un serveur racine secondaire (\texttt{SlaveServer}) qui communique directement avec le serveur racine principal (\texttt{MasterServer}). La synchronisation s'effectue via les mécanismes standards \texttt{NOTIFY} (UDP) et \texttt{AXFR} (TCP), garantissant le maintien de la zone même en cas de panne du master.
+
+    \item \textbf{Support des types A / AAAA et gestion du cache :}
+    Chaque serveur et résolveur gère nativement la résolution des enregistrements d'adresses IPv4 (\texttt{A}) et IPv6 (\texttt{AAAA}) sur de multiples domaines. La zone de cache configurable (\texttt{CacheManager}) est intégrée et respecte les durées de vie (\texttt{TTL}) propres à chaque enregistrement et serveur pour optimiser les performances.
+
+    \item \textbf{Outil client en ligne de commande (CLI) :}
+    Conformément aux recommandations, l'outil client (\texttt{DNSClient} / \texttt{cli\_ui.py}) a été développé dès le début du projet. Il a servi d'outil de diagnostic continu pour valider la forge des paquets et permet d'émettre des requêtes personnalisées (vidage du cache).
+
+    \item \textbf{Utilisation des protocoles UDP / TCP (Sans API REST) :}
+    Toutes les communications entre le client, le résolveur et les serveurs de noms reposent exclusivement sur des sockets UDP et TCP sur les ports dédiés (53 et 10054). Aucune interface HTTP ou API REST n'a été employée, garantissant le respect de la norme RFC 1035.
+
+    \item \textbf{Compatibilité avec les outils système standards :}
+    En exposant le port du résolveur récursif (port \texttt{10054}) au niveau de l'orchestration Docker, tout ordinateur personnel hôte peut utiliser la solution via une simple configuration réseau ou l'utilisation d'utilitaires système standards (\texttt{nslookup}, \texttt{dig}).
+\end{itemize}
 
 \subsection{Limites et perspectives d'améliorations}
 % TODO: Identifier les axes d'évolution futurs.
@@ -10,3 +31,22 @@
 % - Support protocolaire : Gestion complète des extensions EDNS0 et des gros paquets UDP (PATH MTU).
 % - Persistance : Persistance sur disque du cache DNS pour éviter le démarrage à froid.
 % - Sécurité : Implémentation de la validation DNSSEC (signatures cryptographiques RRSIG/DNSKEY).
+% - Replication : L'implémentation de la réplication n'est pas conforme à la norme meme si justifié dans l'analyse technique.
+Malgré la conformité et la stabilité de l'implémentation, certaines pistes d'amélioration peuvent être envisagées :
+
+\begin{itemize}
+    \item \textbf{Modèle de concurrence :}
+    L'architecture réseau actuelle de \texttt{DNSListener} repose sur un modèle multi-threadé synchrone (\textit{Thread-per-connection} pour le TCP). Bien que parfaitement adapté à notre environnement de test et à des charges modérées, ce modèle montre ses limites face à des volumes massifs de requêtes ou des attaques par déni de service (DDoS) en raison du coût d'instanciation des threads. Une refonte vers une architecture asynchrone guidée par les événements (\textit{Event Loop} via le module \texttt{asyncio} de Python) constituerait une évolution majeure pour la montée en charge.
+
+    \item \textbf{Support protocolaire avancé (EDNS0 et Path MTU) :}
+    Afin de prévenir tout plantage lors de l'interrogation par des outils système réels (\texttt{dig}, \texttt{nslookup}), le système tolère et ignore la section \texttt{ADDITIONAL} contenant des pseudo-enregistrements \texttt{OPT} (Type 41). Cependant, l'extension EDNS0 (RFC 6891) n'est pas pleinement implémentée. La prise en charge native d'EDNS0 permettrait de négocier des tailles de tampons UDP supérieures à 512 octets et d'optimiser le transfert de réponses volumineuses sans basculer de manière systématique sur TCP.
+
+    \item \textbf{Persistance du cache DNS :}
+    Le cache du résolveur récursif réside exclusivement en mémoire RAM volatile. Bien que suffisant pour un environnement de test et justifié par l'analyse technique, le client pourrait apprécier la persistance du cache sur disque pour éviter un démarrage à froid et conserver les enregistrements non expirés entre deux redémarrages.
+
+    \item \textbf{Sécurisation du protocole (DNSSEC) :}
+    En l'état, le résolveur accorde une confiance aveugle aux réponses fournies par les serveurs de noms sans vérifier l'authenticité de la source ni l'intégrité des données. L'implémentation des extensions de sécurité DNSSEC (RFC 4033 à 4035) permettrait de protéger le système contre l'empoisonnement de cache (\textit{DNS Cache Poisoning}). Cette implémentation nécessiterait la validation des chaînes de confiance cryptographiques au moyen d'enregistrements \texttt{RRSIG}, \texttt{DNSKEY}, \texttt{DS} et \texttt{NSEC/NSEC3}.
+
+    \item \textbf{Non-conformité stricte de la réplication AXFR :}
+    Comme argumenté dans l'analyse technique, le mécanisme de transfert de zone (\texttt{AXFR}) s'appuie sur une encapsulation applicative du dictionnaire JSON complet au sein du champ \texttt{RDATA} d'un unique enregistrement de type 252. Bien que cette solution soit parfaitement fonctionnelle, élégante et justifiée au sein de notre écosystème fermé, elle ne respecte pas le protocole binaire standard de la RFC 1035 (qui exige un flux continu d'enregistrements binaires encadré par deux enregistrements \texttt{SOA}). Un alignement strict sur la norme permettrait une interopérabilité directe avec des serveurs secondaires tiers.
+\end{itemize}
