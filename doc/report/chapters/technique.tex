@@ -41,7 +41,7 @@ Enfin, la classe \texttt{DomainName} centralise la compression.
 % TODO: Expliquer l'utilisation du module `struct` de Python (format '!HHHHHH').
 % - Détailler la manipulation des flags d'en-tête (QR, Opcode, AA, TC, RD, RA, Rcode) via les décalages et masques binationaux.
 Envoyer un message sur le réseau demande un contrôle de la couche binaire.
-Python étant un langage de haut niveau, il est nécessaire de passer par le module \texttt{Struct} pour atteindre cette granularité
+Python étant un langage de haut niveau, il est nécessaire de passer par le module \texttt{Struct}~\cite{python_doc_struct} pour atteindre cette granularité
 
 \texttt{Struct} permet de convertir des types de données Python en flux d'octets et inversement.
 Pour ce faire, il est nécessaire de définir un format de conversion.
@@ -87,7 +87,7 @@ En effet, l'absence de poignée de main (\texttt{handshake}) permet des résolut
 Cependant, l'UDP étant sans connexion et non fiable, il limite la taille des messages à 512 octets.
 
 Pour gérer les communications, l'architecture sépare strictement l'écoute (le serveur) et l'émission (le client).
-La classe \texttt{DNSListener} ouvre des \texttt{sockets} serveurs multi-threadées (un thread par requête TCP) pour ne pas bloquer la réception des paquets.
+La classe \texttt{DNSListener} ouvre des \texttt{sockets}\cite{python_doc_socket} serveurs multi-threadées (un thread par requête TCP) pour ne pas bloquer la réception des paquets.
 
 À l'inverse, la classe \texttt{DNSRequester} gère l'émission avec des délais d'attente (\texttt{timeouts}) stricts pour éviter qu'un serveur distant silencieux ne bloque notre résolveur.
 
@@ -251,7 +251,7 @@ Pour assurer la redondance et la tolérance aux pannes (Épic 4), un mécanisme 
 Dès que le serveur Master détecte une modification de sa zone, il émet une trame UDP avec l'OpCode \texttt{NOTIFY} (4) à destination de ses Slaves.
 À la réception de ce signal, le Slave initie une connexion TCP pour demander un transfert de zone complet (requête de type \texttt{AXFR}, QTYPE 252).
 
-La norme RFC 1035 décrit traditionnellement le transfert AXFR comme un flux séquentiel de multiples enregistrements binaires encadré par des enregistrements SOA.
+La norme RFC 1996~\cite{rfc1996} décrit traditionnellement le transfert AXFR comme un flux séquentiel de multiples enregistrements binaires encadré par des enregistrements SOA.
 Cependant, étant donné que notre écosystème stocke nativement les zones au format JSON, nous avons opté pour une approche pragmatique et simplifiée.
 Le serveur Master sérialise l'intégralité du dictionnaire JSON en une seule chaîne de caractères encodée en UTF-8, et l'encapsule dans la section \texttt{RDATA} d'un unique enregistrement de type 252.
 Le Slave reçoit cette trame TCP, extrait le JSON, et met à jour sa mémoire instantanément.
@@ -268,6 +268,7 @@ Cette méthode respecte l'encapsulation DNS tout en tirant pleinement parti des 
 \subsection{Conception des classes}
 % TODO: Présenter les choix de composition vs héritage.
 % - Insérer le Diagramme de Classes final complet.
+Ce diagramme de classes présente l'ensemble des classes implémentées dans le projet.
 \begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{figures/technique/class.png}

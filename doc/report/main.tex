@@ -84,8 +84,6 @@
 \bibliographystyle{ieeetr} 
 \renewcommand\refname{Bibliographie}
 
-\bibliography{bibliographie}
-
 \input{chapters/intro.tex}
 \input{chapters/contexte.tex}
 \input{chapters/fonctionnelle.tex}
@@ -94,6 +92,8 @@
 \input{chapters/retrospective.tex}
 \input{chapters/note_iag.tex}
 
+\nocite{*}
+\bibliography{bibliographie}
 \listoffigures
 
 \end{document}

@@ -19,7 +19,7 @@ la gestion d'un cache local, le fallback vers TCP pour les réponses volumineuse
 ainsi que la réplication des zones via AXFR et NOTIFY.
 Le système est conçu pour être interopérable avec les outils existants tels que dig et nslookup.
 
-Le cahier des charges n'inclut donc pas la mise en œuvre de signatures DNSSEC, le chiffrement, le support des requêtes en IPv6 (même si les enregistrements AAAA sont supportés), ni l'extention EDNS0 permettant de négocier des tailles de trames supérieures à 512 octets en UDP.
+Le cahier des charges n'inclut donc pas la mise en œuvre de signatures DNSSEC, le chiffrement, le support des requêtes en IPv6 (même si les enregistrements AAAA sont supportés), ni l'extention EDNS0 (RFC 6891~\cite{rfc6891}) permettant de négocier des tailles de trames supérieures à 512 octets en UDP.
 
 L'architecture du système doit cependant faciliter l'ajout éventuel de ces fonctionnalités.
 
@@ -58,5 +58,5 @@ Hors du respect de la contrainte académique, ce choix présente de multiples b�
 % TODO: Développer les enjeux d'interopérabilité.
 % - Nécessité de respecter scrupuleusement le format de trame binaire de 1987.
 % - Garantir la compatibilité ascendante avec des outils système réels (dig, nslookup, host).
-Afin de garantir l'interopérabilité avec les outils existants, le projet doit respecter le format de trame binaire défini par la RFC 1035. % TODO: citation
+Afin de garantir l'interopérabilité avec les outils existants, le projet doit respecter le format de trame binaire défini par la RFC 1035~\cite{rfc1035}.
 Le respect de cette norme permettra au système de communiquer correctement avec les serveurs DNS existants et d'assurer la compatibilité avec des outils tels que dig ou nslookup.
