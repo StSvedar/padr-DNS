@@ -107,7 +107,7 @@ Le fichier \texttt{assert\_commands.py} lit les cas de tests et les lance en uti
 Contrairement aux autres fichiers de test, son nom ne commence pas par "\textit{test}".
 Cela permet d'éviter qu'il soit lancé par la commande générale \texttt{pytest -v} ce qui ferait rater la validation quand l'environnement \textit{docker} n'est pas démarré.
 
-\subsection{Bugs critiques identifiés et résolus}
+\subsection{Bugs identifiés et résolus}
 % TODO: Retour sur les corrections majeures lors du développement.
 % % [À MENTIONNER]: Le bug du typage Enum : Correction des échecs de comparaison silencieux entre String ("NS") et RecordType.NS dans la recherche de délégations de ZoneData.
 % % [À MENTIONNER]: Le piège de la référence mémoire lors du hot-reload : Mise à jour in-place de l'instance ZoneData existante via load_from_dict() au lieu de réinstancier l'objet (ce qui brisait la référence détenue par le moteur AuthoritativeEngine).
@@ -130,3 +130,24 @@ Ce problème a été résolu en implémentant une mise à jour \textit{in-place}
 Les utilitaires clients modernes comme \texttt{dig} ou \texttt{nslookup} injectent fréquemment un enregistrement pseudo-ressource de type \texttt{OPT} (Type 41, lié à l'extension EDNS0) dans la section \texttt{ADDITIONAL}. Lors de la désérialisation (\textit{unpacking}) de la trame binaire, le parseur levait une exception non interceptée face à ce type non implémenté, interrompant brutalement le traitement et renvoyant une réponse vide qui provoquait un \textit{timeout} côté client.
 La logique de lecture des \textit{Resource Records} a été assouplie pour que les enregistrements de type inconnu ou non supporté soient simplement ignorés en levant \textit{warning} dans les logs.
 De cette manière, une compatibilité totale avec les outils d'interrogation standards est rétablie.
+
+\subsection{Réaction à une modification tardive du cahier des charges}
+Suite à la phase d'implémentation, je me suis rendu compte en relisant l'énoncé du projet qu'une subtilité m'avait échappée.
+En effet, le cahier des charges stipule que chaque serveur doit être capable de répondre à des requêtes récursives et posséder un cache tout en pouvant un serveur autoritaire pour un domaine.
+
+Cette fonctionnalité n'était pas prévue dans l'architecture initiale qui séparait strictement les serveurs de noms des résolveurs récursifs.
+Cependant, grâce à la modularité du code et à son architecture orientée objets, il a été possible d'ajouter cette fonctionnalité sans refactoriser l'ensemble du projet.
+En effet, il a suffi de faire hériter la classe \texttt{BaseNameServer} de la classe \texttt{RecursiveResolver} et d'implémenter la méthode \texttt{\_route\_request()} pour rediriger les requêtes vers le moteur itératif de la classe parente si nécessaire.
+
+Ce changement est également une avancée en termes de clean code, car il permet de réduire la duplication de code et de centraliser la logique de lancement d'un serveur.
+De plus, il n'a provoqué aucune répercussion sur le reste du code, les tests unitaires et d'intégration ont tous été validés avec succès sans demander de modifications importantes.
+
+Voici le diagramme de classes final, obtenu après l'ajout tardif de cette fonctionnalité :
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/implementation/class_refactor.png}
+    \caption{Diagramme de classes après refactorisation.}
+    \label{fig:class_refactor}
+\end{figure}
+
+Finalement, cette péripétie a permis de prouver la robustesse de l'architecture du projet et sa capacité à évoluer pour répondre à des exigences supplémentaires sans compromettre la qualité du code existant.
