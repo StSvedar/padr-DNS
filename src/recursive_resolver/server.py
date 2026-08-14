@@ -1,6 +1,6 @@
 import threading
 from typing import Tuple
-from src.core.enums import QR, Rcode, RecordClass, RecordType
+from src.core.enums import QR, Rcode, RecordType
 from src.core.dns_listener import DNSListener
 from src.core.dns_message import DNSMessage
 from src.recursive_resolver.iterative_engine import IterativeEngine
@@ -12,21 +12,21 @@ class RecursiveResolver:
         self.listen_ip = listen_ip
         self.listen_port = listen_port
         
-        self.engine = IterativeEngine(root_ips=root_ips)
+        self.engine = IterativeEngine(root_ips=root_ips or [])
         self.listener = DNSListener()
         self.cache = CacheManager()
 
     def start_listening(self):
         """Launch UDP and TCP listeners."""
-        print(f"[*] Booting up RecursiveResolver on {self.listen_ip}:{self.listen_port}")
-        udp_thread = threading.Thread(target=self.listener.start_udp_listener, args=(self.listen_ip, self.listen_port, self._handle_client_request), daemon=True)
-        tcp_thread = threading.Thread(target=self.listener.start_tcp_listener, args=(self.listen_ip, self.listen_port, self._handle_client_request), daemon=True)
+        print(f"[*] Booting up {self.__class__.__name__} on {self.listen_ip}:{self.listen_port}")
+        udp_thread = threading.Thread(target=self.listener.start_udp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
+        tcp_thread = threading.Thread(target=self.listener.start_tcp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
         
         udp_thread.start()
         tcp_thread.start()
         return udp_thread, tcp_thread
 
-    def _handle_client_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
+    def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
         try:
             query = DNSMessage.unpack(data)
 
