@@ -9,6 +9,9 @@ class DNSQuestion:
         self.qtype = qtype
         self.qclass = qclass
 
+    def __str__(self):
+        return f"DNSQuestion(name={self.name}, qtype={self.qtype}, qclass={self.qclass})"
+
     def pack(self, packet: bytearray, domain_offsets: dict) -> bytes:
         data = bytearray()
         data.extend(self.name.pack(packet, domain_offsets))

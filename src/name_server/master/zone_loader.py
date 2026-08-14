@@ -41,7 +41,7 @@ class ZoneLoader:
 
         thread = threading.Thread(target=self._watch_loop, daemon=True)
         thread.start()
-        print(f"[*] ZoneLoader is watching {self.filepath} for changes (Windows/Linux compatible).")
+        print(f"[*] ZoneLoader is watching {self.filepath} for changes.")
 
     def _watch_loop(self):
         """Background loop checking file mtime."""

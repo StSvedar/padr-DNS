@@ -9,6 +9,7 @@ class IterativeEngine:
         self.requester = DNSRequester()
 
     def resolve(self, query: DNSMessage, max_iterations: int=10 ) -> DNSMessage:
+        print(f"[IterativeEngine] Starting iterative resolution for query: {query}")
         if not query.questions:
             return query
 
@@ -19,6 +20,7 @@ class IterativeEngine:
                 break
 
             target_ip = current_destinations[0]
+            print(f"[IterativeEngine] Querying {target_ip} with {query.questions[0]}")
             response = self._query_next_server(target_ip, query)
 
             if response:
@@ -31,6 +33,7 @@ class IterativeEngine:
                 else:
                     break
             else:   # Server did not respond
+                print(f"[IterativeEngine] No response from {target_ip}, trying next server...")
                 current_destinations.pop(0)
 
 

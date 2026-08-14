@@ -12,6 +12,9 @@ class ResourceRecord:
         self.ttl = ttl
         self.rdata = rdata
 
+    def __str__(self):
+        return f"ResourceRecord(domain={self.domain}, type={self.type}, class={self.rclass}, ttl={self.ttl}, rdata={self.rdata_str})"
+
     @property
     def rdata_str(self) -> str:
         if self.type == RecordType.A:
@@ -21,6 +24,11 @@ class ResourceRecord:
         if self.type in (RecordType.NS, RecordType.CNAME):
             domain_obj, _ = DomainName.unpack(self.rdata, 0)
             return str(domain_obj)
+        if self.type == RecordType.SOA:
+            mname, offset = DomainName.unpack(self.rdata, 0)
+            rname, offset = DomainName.unpack(self.rdata, offset)
+            serial, refresh, retry, expire, minimum = struct.unpack('!IIIII', self.rdata[offset:offset+20])
+            return f"{mname} {rname} {serial} {refresh} {retry} {expire} {minimum}"
         if self.type == RecordType.TXT:
             return self.rdata[1:].decode('utf-8', errors='ignore') if len(self.rdata) > 0 else ""
         
