@@ -1,6 +1,5 @@
 import argparse
-import socket
-from src.core.enums import RecordType
+from src.core.enums import RecordType, RecordClass
 from src.core.resource_record import ResourceRecord
 from src.core.dns_message import DNSMessage
 from src.client.dns_client import DNSClient
@@ -53,26 +52,10 @@ class CLI_UI:
             return
         print(f";; {title}")
         for record in section_data:
-            qtype_str = self._get_type_str(record.type)
-            rdata_str = self._format_rdata(record.type, record.rdata)
-            print(f"{record.domain}\t{record.ttl}\tIN\t{qtype_str}\t{rdata_str}")
+            qtype_str = record.type.name if hasattr(record.type, 'name') else RecordType(record.type).name
+            qclass_str = record.rclass.name if hasattr(record.rclass, 'name') else RecordClass(record.rclass).name
+            print(f"{record.domain}\t{record.ttl}\t{qclass_str}\t{qtype_str}\t{record.rdata_str}")
         print()
-
-    def _get_type_str(self, qtype: int) -> str:
-        return {RecordType.A: 'A', RecordType.NS: 'NS', RecordType.CNAME: 'CNAME', RecordType.TXT: 'TXT', RecordType.AAAA: 'AAAA'}.get(qtype, str(qtype))
-
-    def _format_rdata(self, qtype: int, rdata: bytes) -> str:
-        try:
-            if qtype == RecordType.A:
-                return socket.inet_ntoa(rdata)
-            elif qtype == RecordType.AAAA:
-                return socket.inet_ntop(socket.AF_INET6, rdata)
-            elif qtype == RecordType.TXT:
-                return rdata[1:].decode('utf-8') if len(rdata) > 0 else ""
-            else:
-                return f"<binary: {rdata.hex()}>"
-        except Exception:
-            return f"<parse error: {rdata.hex()}>"
 
     def start(self, args_list=None):
         args = self.parse_arguments(args_list)

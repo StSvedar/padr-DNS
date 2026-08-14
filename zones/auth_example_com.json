@@ -1,0 +1,45 @@
+{
+  "example.com": {
+    "NS": [
+      {"host": "ns1.example.com", "ttl": 86400},
+      {"host": "ns2.example.com", "ttl": 86400}
+    ],
+    "A": [
+      {"ip": "192.168.10.10", "ttl": 300}
+    ]
+  },
+  "ns1.example.com": {
+    "A": [
+      {"ip": "10.53.0.102", "ttl": 86400}
+    ]
+  },
+  "ns2.example.com": {
+    "A": [
+      {"ip": "10.53.0.202", "ttl": 86400}
+    ]
+  },
+  "www.example.com": {
+    "A": [
+      {"ip": "192.168.10.20", "ttl": 60},
+      {"ip": "192.168.10.21", "ttl": 60}
+    ],
+    "AAAA": [
+      {"ip": "2001:db8::8a2e:370:7334", "ttl": 60}
+    ]
+  },
+  "api.example.com": {
+    "A": [
+      {"ip": "192.168.10.30", "ttl": 300}
+    ]
+  },
+  "blog.example.com": {
+    "CNAME": [
+      {"host": "www.example.com", "ttl": 300}
+    ]
+  },
+  "mail.example.com": {
+    "A": [
+      {"ip": "192.168.10.40", "ttl": 3600}
+    ]
+  }
+}

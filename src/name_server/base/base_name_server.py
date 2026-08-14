@@ -27,10 +27,13 @@ class BaseNameServer:
 
     def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
         """Callback function to route incoming DNS requests to the appropriate handler."""
+        print(f"[*] Received request from {addr} over {protocol}")
         try:
             query = DNSMessage.unpack(data)
+            print(f"[*] Parsed DNS query: {query}")
             
             response_msg = self._build_response(query)
+            print(f"[*] Built DNS response: {response_msg}")
             
             return response_msg.pack()
             
@@ -62,12 +65,29 @@ class BaseNameServer:
 
         else:
             delegation_domain = self._find_delegation(qname)
+            
+            is_our_zone_apex = False
             if delegation_domain:
+                if (self.zone_data.get_records(delegation_domain, RecordType.A) or 
+                    self.zone_data.get_records(delegation_domain, RecordType.AAAA)):
+                    is_our_zone_apex = True
+
+            if delegation_domain and not is_our_zone_apex:
                 response.aa = 0
                 self._build_delegation(delegation_domain, response)
             else:
                 response.aa = 1
                 response.rcode = Rcode.NXDOMAIN
+
+                if delegation_domain:
+                    soa_records = self.zone_data.get_records(delegation_domain, RecordType.SOA)
+                        
+                    if soa_records:
+                        response.authority.extend(soa_records)
+                    else:
+                        ns_records = self.zone_data.get_records(delegation_domain, RecordType.NS)
+                        if ns_records:
+                            response.authority.extend(ns_records)
 
         return response
 

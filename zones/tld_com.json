@@ -1,0 +1,22 @@
+{
+  "example.com": {
+    "NS": [
+      {"host": "ns1.example.com", "ttl": 86400}
+    ]
+  },
+  "ns1.example.com": {
+    "A": [
+      {"ip": "10.53.0.102", "ttl": 86400}
+    ]
+  },
+  "test.com": {
+    "NS": [
+      {"host": "ns1.test.com", "ttl": 86400}
+    ]
+  },
+  "ns1.test.com": {
+    "A": [
+      {"ip": "10.53.0.104", "ttl": 86400}
+    ]
+  }
+}

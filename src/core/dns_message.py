@@ -21,6 +21,11 @@ class DNSMessage:
         self.authority: list[ResourceRecord] = []
         self.additional: list[ResourceRecord] = []
 
+    def __str__(self):
+        def readable_list(lst):
+            return '[' + ', '.join(str(item) for item in lst) + ']'
+        return f"DNSMessage(id={self.id}, qr={self.qr}, opcode={self.opcode}, aa={self.aa}, tc={self.tc}, rd={self.rd}, ra={self.ra}, z={self.z}, rcode={self.rcode}, questions={readable_list(self.questions)}, answers={readable_list(self.answers)}, authority={readable_list(self.authority)}, additional={readable_list(self.additional)})"
+
     @property
     def qdcount(self):
         return len(self.questions)
