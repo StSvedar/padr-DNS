@@ -56,6 +56,9 @@ services:
         ipv4_address: 10.53.0.102
     volumes:
       - ../zones:/app/zones
+    ports:
+      - "10055:53/udp"
+      - "10055:53/tcp"
 
   resolver:
     build:
