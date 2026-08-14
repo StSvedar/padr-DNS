@@ -4,11 +4,15 @@
 % - La structure arborescente des noms de domaine.
 % - La hiérarchie des serveurs : Root (.), TLD (.be), Serveurs Autoritaires.
 % - La différence entre résolution récursive (vue client) et itérative (vue résolveur).
+Comme expliqué dans l'énoncé du projet, un DNS (domain name system) est un système de résolution de noms de domaine en adresses IP.
+Son fonctionnement est organisé de manière hiérarchique, avec des serveurs racine (root) qui connaissent les serveurs de premier niveau (TLD), eux-mêmes connaissant les serveurs autoritaires pour chaque domaine.
+Finalement, un serveur de résolution récursive interroge ces serveurs de manière itérative pour obtenir l'adresse IP correspondant à un nom de domaine donné.
 
-\subsection{Objectif du projet}
+% \subsection{Objectif du projet}
 % TODO: Rédiger l'objectif global du projet.
 % - Expliquer la démarche "from scratch" pour comprendre le DNS de l'intérieur.
 % - Présenter la création des trois briques : Client CLI, Résolveur Récursif, Serveur Autoritaire.
+
 
 \subsection{Périmètre et limites du système}
 % TODO: Définir ce qui est implémenté et ce qui est exclu.
@@ -19,7 +23,7 @@ la gestion d'un cache local, le fallback vers TCP pour les réponses volumineuse
 ainsi que la réplication des zones via AXFR et NOTIFY.
 Le système est conçu pour être interopérable avec les outils existants tels que dig et nslookup.
 
-Le cahier des charges n'inclut donc pas la mise en œuvre de signatures DNSSEC, le chiffrement, le support des requêtes en IPv6 (même si les enregistrements AAAA sont supportés), ni l'extention EDNS0 (RFC 6891~\cite{rfc6891}) permettant de négocier des tailles de trames supérieures à 512 octets en UDP.
+Le cahier des charges n'inclut donc pas les recherches inverses, la mise en œuvre de signatures DNSSEC, le chiffrement, le support des requêtes en IPv6 (même si les enregistrements AAAA sont supportés), ni l'extention EDNS0 (RFC 6891~\cite{rfc6891}) permettant de négocier des tailles de trames supérieures à 512 octets en UDP.
 
 L'architecture du système doit cependant faciliter l'ajout éventuel de ces fonctionnalités.
 
