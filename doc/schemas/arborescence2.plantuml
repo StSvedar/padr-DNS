@@ -40,6 +40,9 @@
  +++ **end-to-end/**
  ++++ test_full_dns_stack.py
  ++++ test_master_slave_replication.py
+ +++ **infra**
+ ++++ assert_commands.py
+ ++++ test_cases.json 
  +++ **name_server/**
  ++++ test_base_name_server.py
  ++++ test_master_server.py
