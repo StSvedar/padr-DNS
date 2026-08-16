@@ -1,0 +1,23 @@
+@startuml
+title Diagramme de Séquence - Émission d'une requête (DNSRequester)
+
+box "Composant Émetteur (DNSClient, IterativeEngine ou Master)" #AliceBlue
+    participant Business as "Logique Métier\n(ex: IterativeEngine)"
+    participant Requester as "DNSRequester\n(Client réseau)"
+end box
+participant Remote as "Serveur DNS Distant\n(Racine, TLD, Auth, ou Slave)"
+
+Business -> Requester: send_udp_query(ip, port, data, timeout)
+Requester -> Remote: Socket UDP : Datagramme binaire
+Remote -->> Requester: Réponse UDP (ou Timeout)
+
+alt Réponse complète (Drapeau TC = 0)
+    Requester -->> Business: Retourne les octets bruts
+else Réponse tronquée (Drapeau TC = 1 -> Fallback TCP)
+    Business -> Requester: send_tcp_query(ip, port, data, timeout)
+    Requester -> Remote: Ouverture Socket TCP
+    Requester -> Remote: Envoi [Taille (2 octets)] + [Message]
+    Remote -->> Requester: Réponse [Taille (2 octets)] + [Message]
+    Requester -->> Business: Retourne les octets dépréfixés
+end
+@startuml

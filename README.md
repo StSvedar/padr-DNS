@@ -60,14 +60,6 @@ dig @127.0.0.1 -p 10054 api.example.com A
 ```
 
 ## Tests d'infrastructure automatisés
-Activation de l'environnement virtuel et installation des dépendances :
-```
-python -m venv venv       # Premier lancement uniquement
-source venv/bin/activate  # Linux / MacOS
-venv\Scripts\activate     # Windows
-```
-
-Lancement des tests :
 ```
 pytest tests\infra\assert_commands.py -v
 ```

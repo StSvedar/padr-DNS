@@ -54,7 +54,7 @@
 
 %Informations destinées à la couverture
 
-\newcommand{\titre}{PADR}
+\newcommand{\titre}{Programmation d'applications distribuées en réseau}
 \newcommand{\auteur}{Malo Goossens}
 \newcommand{\prof}{Dr. Laurent Philippe, M. Adrien Huygens}
 \newcommand{\master}{Master 1 en Architecture des Systèmes Informatiques}
@@ -84,10 +84,17 @@
 \bibliographystyle{ieeetr} 
 \renewcommand\refname{Bibliographie}
 
-\bibliography{bibliographie}
-
+\input{chapters/intro.tex}
+\input{chapters/contexte.tex}
+\input{chapters/fonctionnelle.tex}
+\input{chapters/technique.tex}
+\input{chapters/implementation.tex}
+\input{chapters/retrospective.tex}
+\input{chapters/conclu.tex}
 \input{chapters/note_iag.tex}
 
+\nocite{*}
+\bibliography{bibliographie}
 \listoffigures
 
 \end{document}

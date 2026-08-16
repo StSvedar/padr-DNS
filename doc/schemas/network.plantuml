@@ -1,0 +1,38 @@
+@startuml
+box "Composants Réseau Locaux" #AliceBlue
+participant SocketNet as "Socket Réseau\n(UDP / TCP)"
+participant Listener as "DNSListener\n(Port 10054/53)"
+participant Worker as "Thread Client\n(_handle_client)"
+participant Requester as "DNSRequester"
+end box
+
+box "Serveur Distant (Racine / TLD / Auth)" #HoneyDew
+participant Remote as "Serveur DNS Distant\n(Port 53)"
+end box
+
+== 1. Réception d'une requête (Serveur) ==
+SocketNet -> Listener: Arrivée d'un paquet
+alt Réception UDP
+    Listener -> Worker: Création d'un thread dédié
+    Worker -> Worker: Traitement direct du paquet
+else Réception TCP
+    Listener -> Worker: Création d'un thread dédié
+    Worker -> Worker: Lecture du préfixe de 2 octets (Taille)
+    Worker -> Worker: Lecture du message complet
+end
+
+== 2. Émission de requêtes sortantes (Client) ==
+Worker -> Requester: send_udp_query(ip, data, timeout)
+Requester -> Remote: Socket UDP (Datagramme)
+Remote -->> Requester: Réponse UDP
+
+alt Réponse tronquée (Drapeau TC = 1)
+    ref over Requester, Remote: Basculement Fallback TCP
+    Worker -> Requester: send_tcp_query(ip, data, timeout)
+    Requester -> Remote: Connexion TCP
+    Requester -> Remote: Envoi trame + Préfixe 2 octets (Taille)
+    Remote -->> Requester: Réponse TCP avec préfixe de taille
+end
+
+Worker -->> SocketNet: Renvoi de la réponse finale au client (UDP ou TCP)
+@startuml

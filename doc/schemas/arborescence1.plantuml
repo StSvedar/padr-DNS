@@ -1,0 +1,45 @@
+@startsalt
+{
+{T
+ + **dns_project/**
+ ++ pytest.ini
+ ++ README.md
+ ++ **config/**
+ +++ auth_test.env
+ +++ resolver.env
+ +++ root.env
+ +++ tld.env
+ ++ **doc/**
+ +++ **raisonnement/**
+ ++++ implications_techniques.md
+ ++++ user_stories.md
+ +++ **report/**
+ ++++ Bibliographie.bib
+ ++++ cover.tex
+ ++++ main.tex
+ ++++ **chapters/**
+ +++++ contexte.tex
+ +++++ fonctionnelle.tex
+ +++++ implementation.tex
+ +++++ intro.tex
+ +++++ note_iag.tex
+ +++++ retrospective.tex
+ +++++ technique.tex
+ ++++ **figures/**
+ +++ **schemas/**
+ ++ **docker/**
+ +++ docker-compose.yml
+ +++ Dockerfile.server
+ ++ **experiences/**
+ +++ **sockets/**
+ ++++ tcp_client.py
+ ++++ tcp_server.py
+ ++++ udp_client.py
+ ++++ udp_server.py
+ ++ **zones/**
+ +++ auth_test_be.json
+ +++ root.json
+ +++ tld_be.json
+}
+}
+@endsalt

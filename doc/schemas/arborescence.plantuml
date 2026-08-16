@@ -2,50 +2,91 @@
 {
 {T
  + **dns_project/**
- ++ .gitlab-ci.yml
- ++ requirements.txt
+ ++ pytest.ini
  ++ README.md
+ ++ **config/**
+ +++ auth_test.env
+ +++ resolver.env
+ +++ root.env
+ +++ tld.env
+ ++ **doc/**
+ +++ **raisonnement/**
+ ++++ implications_techniques.md
+ ++++ user_stories.md
+ +++ **report/**
+ ++++ Bibliographie.bib
+ ++++ cover.tex
+ ++++ main.tex
+ ++++ **chapters/**
+ +++++ contexte.tex
+ +++++ fonctionnelle.tex
+ +++++ implementation.tex
+ +++++ intro.tex
+ +++++ note_iag.tex
+ +++++ retrospective.tex
+ +++++ technique.tex
+ ++++ **figures/**
+ +++ **schemas/**
  ++ **docker/**
  +++ docker-compose.yml
- +++ Dockerfile.client
- +++ Dockerfile.resolver
- +++ Dockerfile.master
- +++ Dockerfile.slave
- ++ **config/**
- +++ resolver.env
- +++ master.env
- +++ slave.env
- ++ **zones/**
- +++ root.json
- +++ tld_be.json
- ++ **tests/**
- +++ ~__init__.py
- +++ test_dns_message.py
- +++ test_cache.py
- +++ test_authoritative.py
+ +++ Dockerfile.server
+ ++ **experiences/**
+ +++ **sockets/**
+ ++++ tcp_client.py
+ ++++ tcp_server.py
+ ++++ udp_client.py
+ ++++ udp_server.py
  ++ **src/**
- +++ ~__init__.py
- +++ **core/**
- ++++ ~__init__.py
- ++++ dns_message.py
- ++++ dns_listener.py
- ++++ dns_requester.py
  +++ **client/**
- ++++ ~__init__.py
  ++++ cli_ui.py
  ++++ dns_client.py
- +++ **resolver/**
- ++++ ~__init__.py
+ +++ **core/**
+ ++++ dns_listener.py
+ ++++ dns_message.py
+ ++++ dns_question.py
+ ++++ dns_requester.py
+ ++++ domain_name.py
+ ++++ enums.py
+ ++++ resource_record.py
+ ++++ zone_data.py
+ +++ **name_server/**
+ ++++ **base/**
+ +++++ base_name_server.py
+ ++++ **master/**
+ +++++ master_replication.py
+ +++++ master_server.py
+ +++++ zone_loader.py
+ ++++ **slave/**
+ +++++ slave_replication.py
+ +++++ slave_server.py
+ +++ **recursive_resolver/**
+ ++++ cache_manager.py
+ ++++ iterative_engine.py
  ++++ server.py
- ++++ cache.py
- ++++ iterative.py
- +++ **authoritative/**
- ++++ ~__init__.py
- ++++ base_server.py
- ++++ auth_engine.py
- ++++ zone_loader.py
- ++++ master_server.py
- ++++ slave_server.py
+ ++ **tests/**
+ +++ **client/**
+ ++++ test_cli_ui.py
+ ++++ test_dns_client.py
+ +++ **core/**
+ ++++ test_dns_listener.py
+ ++++ test_dns_message.py
+ ++++ test_requester.py
+ +++ **end-to-end/**
+ ++++ test_full_dns_stack.py
+ ++++ test_master_slave_replication.py
+ +++ **name_server/**
+ ++++ test_base_name_server.py
+ ++++ test_master_server.py
+ ++++ test_replication.py
+ ++++ test_zone_loader.py
+ +++ **recursive_resolver/**
+ ++++ test_cache.py
+ ++++ test_iterative.py
+ ++++ test_server.py
+ ++ **zones/**
+ +++ auth_test_be.json
+ +++ root.json
+ +++ tld_be.json
 }
 }
 @endsalt

@@ -1,0 +1,168 @@
+\section{Implémentation}
+\subsection{Arborescence du Projet}
+% TODO: Insérer et expliquer l'arborescence des dossiers (core/, name_server/, recursive_resolver/, client/, tests/).
+Afin d'éviter d'effectuer des restructurations successives, ce qui est mauvais pour l'historique Git, l'arborescence du projet a été pensée dès le départ pour séparer les différents composants du projet.
+Ainsi, la documentation a été séparée du code source, lui-même séparé des tests et de l'infrastructure de déploiement.
+Le code source et les tests sont eux séparés en plusieurs modules : \texttt{client}, \texttt{resolveur}, \texttt{serveur de noms} et \texttt{core} qui contient les classes de base et les utilitaires partagés par les autres modules.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[height=15cm]{figures/implementation/tree1.png}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[height=15cm]{figures/implementation/tree2.png}
+    \end{minipage}
+    \caption{Arborescence du projet.}
+    \label{fig:tree}
+\end{figure}
+
+
+\subsection{Déploiement sous Docker}
+% TODO: Expliquer l'orchestration multi-conteneurs.
+% - Configuration du réseau Docker statique (10.53.0.0/16) indispensable pour fixer l'IP des serveurs autoritaires et des Glue Records.
+% - Utilisation de PYTHONUNBUFFERED=1 pour le suivi temps réel des logs.
+% % [À MENTIONNER]: Le piège des Inodes Docker : Résolution du bug de rechargement en montant le répertoire parent (../zones:/app/zones) plutôt que des fichiers isolés pour préserver la liaison d'inode lors des sauvegardes atomiques de l'hôte.
+% % [À MENTIONNER]: Procédure d'interrogation et configuration de nslookup pour le débogage (passage obligatoire par le mode interactif : 'set port=10054', 'server 127.0.0.1').
+Le projet est déployé dans un environnement \textit{Docker Compose}, permettant de simuler un réseau DNS complet avec des serveurs de noms et un résolveur récursif.
+De cette manière, il est possible d'essayer le code en instanciant plusieurs serveurs sur une machine unique.
+
+Étant donné que tout le projet a été développé en Python, en utilisant uniquement la librairie standard, il n'y a pas de dépendances externes à installer.
+Un seul \textit{Dockerfile} est donc suffisant pour construire l'image de tous les composants du projet.
+En effet, le docker file utilise l'image officielle \texttt{python:3.11-slim} et copie le code source dans le conteneur.
+Chaque serveur peut ensuite être lancé en exécutant la commande adaptée.
+Les fichiers de configuration et de zones sont montés dans le conteneur via des volumes Docker, ce qui permet de modifier les fichiers sur l'hôte et de voir les changements immédiatement dans le conteneur.
+
+Cette structure est hautement modulaire et permet de tester n'importe quel configuration en ne modifiant que le fichier \texttt{docker-compose.yml} les fichiers de configuration et les fichiers de zones.
+
+La configuration choisie pour répondre à la demande du client est la suivante :
+\begin{itemize}
+    \item Un serveur de noms racine (\texttt{root}) qui contient les délégations vers les serveurs de noms autoritaires.
+    \item Un serveur de noms top-level (\texttt{tld}) qui contient les délégations vers les serveurs de noms autoritaires pour le domaine \texttt{example.com}.
+    \item Un serveur de noms autoritaire (\texttt{authoritative}) qui contient les enregistrements DNS pour le domaine \texttt{example.com}.
+    \item Un résolveur récursif (\texttt{resolver}) qui interroge les serveurs de noms pour résoudre les requêtes DNS. Le port d'écoute du résolveur récursif est configuré sur le port 10054 pour éviter les conflits avec le port 53 utilisé par le système d'exploitation de l'hôte.
+    \item Un serveur assurant la redondance du serveur de noms racine.
+    \item Le client qui permet d'interroger le résolveur récursif ne fait pas partie du réseau DNS simulé sur docker.Il peut, cependant, être utilisé pour l'interroger directement sur le port 10054.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/implementation/infra.png}
+    \caption{Architecture Réseau de l'Environnement de Test Docker Compose.}
+    \label{fig:infra}
+\end{figure}
+
+
+\subsection{Tests Automatisés}
+% TODO: Présenter la suite de tests automatisée.
+% - Utilisation de pytest pour exécuter les 46+ tests unitaires.
+% - Utilisation de unittest.mock pour simuler l'environnement réseau et les timestamps (time.time).
+% % [À MENTIONNER]: Stratégie de test des threads d'arrière-plan (mocking de os.path.getmtime et os.utime pour simuler les modifications de fichiers de zone).
+Afin de garantir la fiabilité du système, le respect de la RFC 1035 et la non-régression lors des phases de refactoring, le développement a été guidé par des tests automatisés implémentés à l'aide de \texttt{pytest}.
+La suite de tests comprend plus de 46 tests unitaires et d'intégration couvrant l'ensemble des modules de l'application, du parsing binaire jusqu'à la réplication Master/Slave.
+
+\subsubsection{Tests unitaires}
+La strucutre de fichiers des tests unitaires immite celle du code source \\(\texttt{tests/core/}, \texttt{tests/client/}, \texttt{tests/name\_server/}, \texttt{tests/recursive\_resolver/}) de manière à isoler et de valider chaque composant indépendamment :
+
+\textbf{Isolation réseau et simulation des Sockets :}\\
+Grâce au module \texttt{unittest.mock}, les classes réseau telles que \texttt{DNSListener} et \texttt{DNSRequester} sont testées sans ouvrir de vrais ports système ni dépendre d'une connectivité extérieure. Les méthodes \texttt{sendto}, \texttt{recvfrom}, \texttt{recv} et \texttt{sendall} des sockets sont simulées pour vérifier le bon découpage des datagrammes UDP, la lecture du préfixe de longueur de 2 octets en TCP, ainsi que la gestion des exceptions (\texttt{socket.timeout}, \texttt{ConnectionRefusedError}).
+
+\textbf{Validation de la sérialisation binaire :}\\
+Les tests de \texttt{DNSMessage} contrôlent l'exactitude du (dé)paquetage des en-têtes (masques de drapeaux bit-à-bit pour \texttt{QR}, \texttt{Opcode}, \texttt{AA}, \texttt{TC}, \texttt{RD}, \texttt{RA}, \texttt{Rcode}), la sérialisation des quatre sections (\textit{Question}, \textit{Answer}, \textit{Authority}, \textit{Additional}), la création des différents enregistrements (\texttt{A}, \texttt{AAAA}, \texttt{NS}, \texttt{CNAME}, \texttt{TXT}, \texttt{AXFR}) et l'efficacité de la compression de noms par pointeurs (\texttt{0xC0}).
+
+\textbf{Simulation du temps et expiration du cache :}\\
+La classe \texttt{CacheManager} fait l'objet de tests dédiés où le temps système est manipulé artificiellement via \texttt{patch("time.time")}. Cela permet de valider sans délai d'attente réel le recalcul dynamique du TTL restant, l'effacement automatique des enregistrements périmés (\textit{Lazy Expiration}), la réécriture du drapeau \texttt{AA=0}, ainsi que la sensibilité à la casse des noms de domaine.
+
+\textbf{Stratégie de test des threads d'arrière-plan et rechargement à chaud :}\\
+La vérification de la surveillance des fichiers de zone dans \texttt{ZoneLoader} repose sur une stratégie combinant des fichiers temporaires et la modification programmée de leurs métadonnées système. Le thread de surveillance est validé soit en substituant \texttt{threading.Thread} par un mock, soit en modifiant physiquement la date de dernière modification du fichier de zone à l'aide de \texttt{os.utime()} pour simuler une sauvegarde sur disque et déclencher l'appel automatique du callback de rechargement.
+
+
+\subsubsection{Tests de bout en bout}
+Les tests d'intégration et de bout en bout (\texttt{tests/end-to-end/}) valident le comportement global du système en instanciant simultanément l'ensemble des acteurs au sein du même processus de test :
+
+\textbf{Stack de résolution récursive complète (\texttt{test\_full\_dns\_stack.py}) :}//
+Ce test monte une architecture DNS complète comprenant un serveur Racine, un serveur TLD (.be), un serveur Autoritaire et un Résolveur Récursif. Pour éviter tout conflit de port lors de l'exécution automatisée, une fonction utilitaire (\texttt{\_free\_port()}) attribue dynamiquement des ports éphémères libres sur la boucle locale (\texttt{127.0.0.1}). Un mécanisme de sonde (\texttt{\_probe\_server()}) attend que chaque serveur soit prêt avant d'émettre les requêtes. Le scénario valide :
+\begin{enumerate}
+    \item La résolution itérative complète pour un enregistrement \texttt{A} et \texttt{AAAA} à travers toute la hiérarchie.
+    \item Le comptage exact des requêtes reçues par chaque serveur pour prouver que la seconde requête identique est servie directement depuis le cache du résolveur sans solliciter les serveurs amont.
+    \item L'interception et le bon traitement de la commande d'administration \texttt{flush.cache.local} (type \texttt{TXT}) qui vide le cache et force une nouvelle résolution itérative lors de la requête suivante.
+\end{enumerate}
+
+\textbf{Réplication Master/Slave et rechargement (\texttt{test\_master\_slave\_replication.py}) :}//
+Ce test simule le cycle de vie complet de la synchronisation entre un serveur \texttt{MasterServer} et un serveur \texttt{SlaveServer}. Il vérifie que lors d'un appel à \texttt{on\_zone\_reload()}, le Master envoie une notification \texttt{NOTIFY} en UDP au Slave, qui réagit immédiatement en initiant un transfert de zone \texttt{AXFR} en TCP sur le port du Master pour mettre à jour sa propre \texttt{ZoneData} locale et incrémenter son numéro de série.
+
+
+\subsubsection{Tests d'infrastructure}
+Pour tester la solution complète en simulant au mieux un utilisateur réel, l'environnement \textit{docker} de laboratoire est lancé.
+Ensuite, il est possible d'interroger le résolveur récursif via le client DNS intégré ou via des outils système standards comme \texttt{dig} pour vérifier que tout fonctionne de la manière attendue.
+Ce processus a été automatisé par les fichiers \texttt{test\_cases.json} et \texttt{assert\_commands.py} contenus dans \texttt{tests\/infra}.
+
+Le fichier \texttt{test\_cases.json} contient une liste de cas de test avec, pour chacun : un nom, une commande à lancer, une liste de chaines de caractères qui doivent être présente dans le résultat de la commande.
+Le fichier \texttt{assert\_commands.py} lit les cas de tests et les lance en utilisant le mot clé \texttt{assert} pour vérifier que les résultats sont conformes aux attentes.
+Contrairement aux autres fichiers de test, son nom ne commence pas par "\textit{test}".
+Cela permet d'éviter qu'il soit lancé par la commande générale \texttt{pytest -v} ce qui ferait rater la validation quand l'environnement \textit{docker} n'est pas démarré.
+
+\subsection{Bugs identifiés et résolus}
+% TODO: Retour sur les corrections majeures lors du développement.
+% % [À MENTIONNER]: Le bug du typage Enum : Correction des échecs de comparaison silencieux entre String ("NS") et RecordType.NS dans la recherche de délégations de ZoneData.
+% % [À MENTIONNER]: Le piège de la référence mémoire lors du hot-reload : Mise à jour in-place de l'instance ZoneData existante via load_from_dict() au lieu de réinstancier l'objet (ce qui brisait la référence détenue par le moteur AuthoritativeEngine).
+% % [À MENTIONNER]: Le bug du resource type inconnu (EDNS0) : Correction en levant un warning plutot qu'une exception
+Lors des phases de tests d'intégration et d'interopérabilité avec des outils système réels (\texttt{dig}, \texttt{nslookup}), plusieurs dysfonctionnements complexes sont apparus :
+
+\textbf{Échecs de comparaison silencieux sur le typage des Enums :}\\
+Lors de la recherche des délégations dans \texttt{ZoneData}, les comparaisons entre la chaîne de caractères brute \texttt{"NS"} et l'énumération \texttt{RecordType.NS} renvoyaient systématiquement \texttt{False} sans lever d'erreur.
+Ce bogue de typage entraînait l'échec silencieux de la détection des serveurs autoritaires délégués et provoquait un repli erroné vers une réponse \texttt{NXDOMAIN}.
+La correction a consisté à appliquer un typage strict et à systématiser la conversion vers les objets \texttt{RecordType} lors des requêtes d'indexation dans les dictionnaire de zone.
+
+\textbf{Piège de la référence mémoire lors du rechargement à chaud (\textit{Hot-Reload}) :}\\
+Initialement, le rappel (\textit{callback}) du composant \texttt{ZoneLoader} réinstanciait un nouvel objet \texttt{ZoneData} lors de la détection d'une modification de fichier JSON.
+Cependant, l'\texttt{AuthoritativeEngine} conservait une référence vers l'ancienne instance en mémoire RAM.
+Cette erreur de conception menait à un comportement incohérent.
+En effet, bien que les logs indiquaient un rechargement réussi, le serveur continuait de traiter les requêtes avec la zone obsolète, provoquant des incohérences dans les réponses DNS.
+Ce problème a été résolu en implémentant une mise à jour \textit{in-place} via la méthode \texttt{load\_from\_dict()}, permettant de vider et de réapprovisionner l'instance existante sans rompre les liaisons d'objets au sein du moteur d'exécution.
+
+\textbf{Gestion des enregistrements non pris en charge (EDNS0 / Type 41) :}\\
+Les utilitaires clients modernes comme \texttt{dig} ou \texttt{nslookup} injectent fréquemment un enregistrement pseudo-ressource de type \texttt{OPT} (Type 41, lié à l'extension EDNS0) dans la section \texttt{ADDITIONAL}. Lors de la désérialisation (\textit{unpacking}) de la trame binaire, le parseur levait une exception non interceptée face à ce type non implémenté, interrompant brutalement le traitement et renvoyant une réponse vide qui provoquait un \textit{timeout} côté client.
+La logique de lecture des \textit{Resource Records} a été assouplie pour que les enregistrements de type inconnu ou non supporté soient simplement ignorés en levant \textit{warning} dans les logs.
+De cette manière, une compatibilité totale avec les outils d'interrogation standards est rétablie.
+
+\subsection{Réaction à une modification tardive du cahier des charges}
+\subsubsection{contexte}
+Suite à la phase d'implémentation, je me suis rendu compte en relisant l'énoncé du projet qu'une subtilité m'avait échappée.
+En effet, le cahier des charges stipule que chaque serveur doit être capable de répondre à des requêtes récursives et posséder un cache tout en pouvant un serveur autoritaire pour un domaine.
+Cette fonctionnalité n'était pas prévue dans l'architecture initiale qui séparait strictement les serveurs de noms des résolveurs récursifs.
+
+\subsubsection{solution}
+Grâce à la modularité du code et à son architecture orientée objets, il a été possible d'ajouter cette fonctionnalité sans refactoriser l'ensemble du projet.
+En effet, il a suffi de faire hériter la classe \texttt{BaseNameServer} de la classe \texttt{RecursiveResolver} et d'implémenter la méthode \texttt{\_route\_request()} pour rediriger les requêtes vers le moteur itératif de la classe parente si nécessaire.
+
+Ce changement est également une avancée en termes de clean code, car il permet de réduire la duplication de code et de centraliser la logique de lancement d'un serveur.
+De plus, il n'a provoqué aucune répercussion sur le reste du code, les tests unitaires et d'intégration ont tous été validés avec succès sans demander de modifications importantes.
+
+Voici le diagramme de classes final, obtenu après l'ajout tardif de cette fonctionnalité :
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/implementation/class_refactor.png}
+    \caption{Diagramme de classes après refactorisation.}
+    \label{fig:class_refactor}
+\end{figure}
+
+Ce diagramme d'activité illustre le flux de résolution d'une requête DNS dans le cas où un serveur agit à la fois comme autorité et comme résolveur récursif.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/implementation/acti_routage.png}
+    \caption{Diagramme d'activité du routage des requêtes.}
+    \label{fig:acti_routage}
+\end{figure}
+Lorsqu'un message est reçu, le serveur vérifie d'abord s'il est autoritaire pour le domaine demandé.
+Si c'est le cas, il traite la requête en utilisant son moteur autoritaire.
+
+Dans le cas contraire, il utilise le comportement du résolveur récursif dont il hérite (appel à la méthode \texttt{super()}), commence par vérifier le flag \texttt{RD}  avant d'effectuer la résolution.
+
+\subsubsection{Conclusion}
+Finalement, cette péripétie a permis de prouver la robustesse de l'architecture du projet et sa capacité à évoluer pour répondre à des exigences supplémentaires sans compromettre la qualité du code existant.
