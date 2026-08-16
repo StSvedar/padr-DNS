@@ -3,58 +3,41 @@ left to right direction
 
 
 actor "Administrateur" as Admin
-actor "Serveur Récursif" as Resolver
 
-' Définition des rôles
-actor "Master" as Master
-actor "Slave" as Slave
-actor "Serveur de Noms" as NS
+agent "Master" as Master
+agent "Slave" as Slave
+agent "Serveur de Noms" as NS
 
 Master -up-|> NS
 Slave -up-|> NS
 
 package "Serveur de Noms (Autoritaire & Réplication)" {
 
-  ' ==================
-  ' PARTIE RÉSOLUTION
-  ' ==================
   usecase "Répondre à une requête (RA=0)" as UC_Respond
   usecase "Fournir réponse autoritaire (AA=1)" as UC_Auth
   usecase "Fournir délégation (NS)" as UC_Deleg
   usecase "Inclure Glue Record (Additional)" as UC_Glue
   usecase "Compresser les noms (Pointeurs)" as UC_Compress
 
-  ' Le Résolveur interroge le Name Server générique
-  Resolver --> UC_Respond
+  NS --> UC_Respond
   UC_Respond ..> UC_Compress : <<include>>
   
   UC_Auth -up-|> UC_Respond
   UC_Deleg -up-|> UC_Respond
   UC_Deleg ..> UC_Glue : <<include>>
 
-  ' ==================
-  ' PARTIE RÉPLICATION
-  ' ==================
-  usecase "Charger la configuration JSON" as UC_Load
+  usecase "Modifier la configuration" as UC_Modify
+  usecase "Charger la configuration" as UC_Load
   usecase "Notifier un changement (NOTIFY)" as UC_Notify
-  usecase "Synchroniser la zone" as UC_Sync
-  usecase "Demander Transfert Complet (AXFR)" as UC_AXFR
-  usecase "Demander Transfert Partiel (IXFR)" as UC_IXFR
+  usecase "Demander un transfert (AXFR)" as UC_AXFR
 
-  ' Comportement commun
-  NS --> UC_Load
+  Master --> UC_Load
 
-  ' Actions de l'Admin et du Master
-  Admin --> UC_Load : "Modifie le JSON"
   UC_Load ..> UC_Notify : <<extend>>\n(Si Master détecte un changement)
-  Master --> UC_Notify
   
-  ' Actions du Slave
-  Slave --> UC_Sync
-  UC_AXFR -up-|> UC_Sync
-  UC_IXFR -up-|> UC_Sync
-  
-  ' Le Slave s'adresse au Master
-  UC_Sync --> Master : "Connexion TCP"
+  Admin --> UC_Modify
+  UC_Modify ..> UC_Load : <<include>>
+
+  Slave --> UC_AXFR : "Demande le transfert"
 }
 @enduml

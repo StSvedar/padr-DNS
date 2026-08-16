@@ -1,5 +1,4 @@
 @startuml
-title Diagramme de Séquence - Réception d'un message (DNSListener)
 
 actor ClientExterne as "Émetteur Externe\n(Client CLI, Résolveur, ou Slave)"
 box "Composant Serveur (RecursiveResolver ou BaseNameServer)" #AliceBlue

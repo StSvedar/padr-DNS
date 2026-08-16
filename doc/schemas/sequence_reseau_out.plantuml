@@ -1,5 +1,4 @@
 @startuml
-title Diagramme de Séquence - Émission d'une requête (DNSRequester)
 
 box "Composant Émetteur (DNSClient, IterativeEngine ou Master)" #AliceBlue
     participant Business as "Logique Métier\n(ex: IterativeEngine)"

@@ -1,8 +1,7 @@
 @startuml
 left to right direction
 
-actor "Client CLI" as Client
-actor "Serveur de Noms\n(Root, TLD, Auth)" as NS
+agent "Client CLI" as Client
 
 package "Serveur Récursif (Résolveur)" {
   
@@ -17,23 +16,16 @@ package "Serveur Récursif (Résolveur)" {
   usecase "Stocker le TTL (Positif)" as UC_CachePos
   usecase "Stocker le TTL SOA (NXDOMAIN)" as UC_CacheNeg
 
-  ' Déclencheur
   Client --> UC_Process
   
-  ' Processus de base
   UC_Process ..> UC_Parse : <<include>>
   UC_Process ..> UC_Cache : <<include>>
   
-  ' Extensions (Si absent du cache)
   UC_Delegation .> UC_Process : <<extend>>\n(Si non trouvé)
   UC_TCP .> UC_Delegation : <<extend>>\n(Si trame reçue TC=1)
   
-  ' Mise en cache
   UC_Delegation ..> UC_UpdateCache : <<include>>
   UC_CachePos -up-|> UC_UpdateCache
   UC_CacheNeg -up-|> UC_UpdateCache
-
-  ' Acteur externe sollicité
-  UC_Delegation --> NS : "Itération"
 }
 @enduml

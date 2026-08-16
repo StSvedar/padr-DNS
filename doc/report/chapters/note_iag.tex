@@ -1,7 +1,64 @@
 \section*{Déclaration d'usage de l'IA générative}
 Conformément au Guide du Projet Innovant de l'Hénallux, je déclare avoir utilisé le grand modèle linguistique Gemini (Google) en tant qu'assistant à la rédaction lors de ce projet.
-Son usage s'est limité à la reformulation académique de textes préalablement rédigés par mes soins, la mise en forme du code \textit{latex} et à l'aide à la structuration des sections du rapport.
+Son usage s'est limité à la reformulation académique de textes préalablement rédigés par mes soins, la mise en forme du code \textit{latex}, l'aide à la structuration des sections du rapport et l'aide à la rédaction des commentaires de certains schémas réalisés par mes soins.
 L'entièreté de la réflexion, des choix techniques et de l'analyse sont le fruit de mon travail personnel.
 
+Google, "Gemini," May 2024. Large language model. Available: https://gemini.google.com/
 
-Google, "Gemini," May 2024. [Large language model]. Available: https://gemini.google.com/
+\subsection{Usages spécifiques}
+Le même modèle a été utilisé pour la rédaction des fichiers de zones de test à partir du prompt suivant :
+\begin{verbatim}
+    Donne moi des beaux fichiers de zone pour les tests
+
+exemple (juste pour te montrer le format):
+{
+  "www.test.be": {
+    "A": [
+      {"ip": "192.168.99.99", "ttl": 300}
+    ]
+  },
+  "api.test.be": {
+    "A": [
+      {"ip": "192.168.99.100", "ttl": 300}
+    ]
+  },
+  "mail.test.be": {
+    "A": [
+      {"ip": "192.168.99.101", "ttl": 300}
+    ]
+  },
+  "www.example.be": {
+    "A": [
+      {"ip": "192.168.99.102", "ttl": 300}
+    ]
+  },
+  "mail.example.be": {
+    "A": [
+      {"ip": "192.168.99.103", "ttl": 300}
+    ]
+  },
+  "test.be": {
+    "NS": [
+      {"host": "ns1.test.be", "ttl": 86400}
+    ]
+  },
+  "example.be": {
+    "NS": [
+      {"host": "ns1.test.be", "ttl": 86400}
+    ]
+  },
+  "ns1.test.be": {
+    "A": [
+      {"ip": "10.53.0.102", "ttl": 300}
+    ]
+  }
+}
+\end{verbatim}
+
+Il a également été utilisé pour la retranscription de code \textit{Python} en code \textit{PlantUML} de diagramme d'activité à partir du prompt suivant :
+\begin{verbatim}
+Fais des diagrammes d'action illustrant le routage (_route_request) et la résolution récursive avec le querynext hop
+Illustre le mécanisme d'héritage et le fonctionnement de la méthode super
+\end{verbatim}
+
+Le code python lui a été fourni dans le prompt pour qu'il puisse générer les diagrammes d'action correspondants.
