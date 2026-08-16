@@ -146,7 +146,6 @@ def test_master_serves_axfr_and_slave_resynchronizes_on_notify(replication_stack
     assert replication_stack["slave"].replication_manager.current_serial == 1
 
     replication_stack["master"].on_zone_reload(replication_stack["updated_zone"])
-    replication_stack["master"].replication_manager.send_notify_to_slaves()
 
     updated_axfr_raw = requester.send_tcp_query("127.0.0.1", replication_stack["master_port"], axfr_query.pack())
     updated_axfr = DNSMessage.unpack(updated_axfr_raw)

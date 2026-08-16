@@ -53,7 +53,7 @@ class ZoneLoader:
                 continue
 
             if self._last_mtime is not None and current_mtime > self._last_mtime:
-                print(f"\n[*] File change detected in {self.filepath}! Sending update notification...")
+                print(f"\n[*] File change detected in {self.filepath}, sending update notification...")
                 self._last_mtime = current_mtime
                 self.load_and_notify()
             elif self._last_mtime is None:

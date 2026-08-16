@@ -24,6 +24,8 @@ class MasterServer(BaseNameServer):
         """Callback for hot reloading zone data."""
         print("[MasterServer] Hot reloading zone data...")
         self.zone_data.load_from_dict(new_data)
+        
+        self.replication_manager.send_notify_to_slaves()
 
     def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
         """Override the parent router to intercept AXFR transfer requests."""
@@ -51,9 +53,12 @@ if __name__ == "__main__":
     port = int(os.getenv("LISTEN_PORT", 53))
     zone_file = os.getenv("ZONE_FILE", "/app/zones/default.json")
     
-    print(f"[*] Bootstrapping master server on {host}:{port} with zone {zone_file}")
+    slave_ips_raw = os.getenv("SLAVE_IPS", "")
+    slave_ips = slave_ips_raw.split(",") if slave_ips_raw else []
     
-    server = MasterServer(host, port, zone_file)
+    print(f"[*] Bootstrapping master server on {host}:{port} with zone {zone_file} (Slaves: {slave_ips})")
+    
+    server = MasterServer(host, port, zone_file, slave_ips)
     server.start_listening()
     
     try:
