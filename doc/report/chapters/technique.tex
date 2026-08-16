@@ -161,6 +161,13 @@ La condition d'arrêt de cette boucle est régie par un opérateur logique \text
 \end{enumerate}
 Tant qu'aucune de ces conditions n'est remplie, le résolveur extrait les adresses IP (\texttt{Glue Records}) situées dans la section \texttt{Additional} de la réponse pour identifier le prochain serveur d'autorité à interroger (TLD, puis serveur de noms spécifique) et relance la boucle.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=16cm]{figures/technique/acti_resolution.png}
+    \caption{Diagramme d'activité de la résolution.}
+    \label{fig:acti_resolution}
+\end{figure}
+
 \subsubsection{Gestion du Cache}
 % TODO: Expliquer l'expiration paresseuse ("Lazy Expiration") et le Negative Caching.
 % % [À MENTIONNER]: Réécriture obligatoire du flag AA=0 à la volée lorsqu'une réponse est servie depuis le cache.

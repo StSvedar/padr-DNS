@@ -10,13 +10,13 @@ Le code source et les tests sont eux séparés en plusieurs modules : \texttt{cl
     \begin{minipage}[t]{0.49\textwidth}
         \vspace{0pt}
         \centering
-        \includegraphics[width=\linewidth]{figures/implementation/tree1.png}
+        \includegraphics[height=15cm]{figures/implementation/tree1.png}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \vspace{0pt}
         \centering
-        \includegraphics[width=\linewidth]{figures/implementation/tree2.png}
+        \includegraphics[height=15cm]{figures/implementation/tree2.png}
     \end{minipage}
     \caption{Arborescence du projet.}
     \label{fig:tree}
@@ -132,11 +132,13 @@ La logique de lecture des \textit{Resource Records} a été assouplie pour que l
 De cette manière, une compatibilité totale avec les outils d'interrogation standards est rétablie.
 
 \subsection{Réaction à une modification tardive du cahier des charges}
+\subsubsection{contexte}
 Suite à la phase d'implémentation, je me suis rendu compte en relisant l'énoncé du projet qu'une subtilité m'avait échappée.
 En effet, le cahier des charges stipule que chaque serveur doit être capable de répondre à des requêtes récursives et posséder un cache tout en pouvant un serveur autoritaire pour un domaine.
-
 Cette fonctionnalité n'était pas prévue dans l'architecture initiale qui séparait strictement les serveurs de noms des résolveurs récursifs.
-Cependant, grâce à la modularité du code et à son architecture orientée objets, il a été possible d'ajouter cette fonctionnalité sans refactoriser l'ensemble du projet.
+
+\subsubsection{solution}
+Grâce à la modularité du code et à son architecture orientée objets, il a été possible d'ajouter cette fonctionnalité sans refactoriser l'ensemble du projet.
 En effet, il a suffi de faire hériter la classe \texttt{BaseNameServer} de la classe \texttt{RecursiveResolver} et d'implémenter la méthode \texttt{\_route\_request()} pour rediriger les requêtes vers le moteur itératif de la classe parente si nécessaire.
 
 Ce changement est également une avancée en termes de clean code, car il permet de réduire la duplication de code et de centraliser la logique de lancement d'un serveur.
@@ -150,4 +152,17 @@ Voici le diagramme de classes final, obtenu après l'ajout tardif de cette fonct
     \label{fig:class_refactor}
 \end{figure}
 
+Ce diagramme d'activité illustre le flux de résolution d'une requête DNS dans le cas où un serveur agit à la fois comme autorité et comme résolveur récursif.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{figures/implementation/acti_routage.png}
+    \caption{Diagramme d'activité du routage des requêtes.}
+    \label{fig:acti_routage}
+\end{figure}
+Lorsqu'un message est reçu, le serveur vérifie d'abord s'il est autoritaire pour le domaine demandé.
+Si c'est le cas, il traite la requête en utilisant son moteur autoritaire.
+
+Dans le cas contraire, il utilise le comportement du résolveur récursif dont il hérite (appel à la méthode \texttt{super()}), commence par vérifier le flag \texttt{RD}  avant d'effectuer la résolution.
+
+\subsubsection{Conclusion}
 Finalement, cette péripétie a permis de prouver la robustesse de l'architecture du projet et sa capacité à évoluer pour répondre à des exigences supplémentaires sans compromettre la qualité du code existant.

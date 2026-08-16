@@ -1,0 +1,52 @@
+@startuml
+
+|Client|
+start
+:Envoi requête DNS;
+
+|BaseNameServer (Enfant)|
+:Réception (data, addr);
+:DNSMessage.unpack(data);
+
+if (Contient des questions ?) then (oui)
+  :Vérification de l'autorité
+  (Apex ou Délégation locale ?);
+  
+  if (Zone connue ?) then (oui)
+    :_build_response(query);
+    :Ajout des enregistrements
+    (AA=1 ou NS de délégation);
+  else (non)
+    |RecursiveResolver (Parent)|
+    :Appel via super()._route_request();
+    
+    if (qtype == TXT && qname == flush.cache.local) then (oui)
+      :Vider le cache (clear);
+      :Trame "Cache flushed successfully";
+    elseif (Flag RD == 1 ?) then (oui)
+      :cache.retrieve();
+      if (Présent et valide en cache ?) then (oui)
+        :Utilisation de la copie en cache;
+      else (non)
+        :IterativeEngine.resolve();
+        :cache.store();
+      endif
+      :Set RA = 1 (Récursion disponible);
+    else (non)
+      :Trame de refus (Rcode = REFUSED);
+    endif
+  endif
+  
+|BaseNameServer (Enfant)|
+:DNSMessage.pack();
+|Client|
+:Renvoi de la réponse;
+stop
+
+else (non)
+|BaseNameServer (Enfant)|
+:Ignorer (Retourner b"");
+stop
+endif
+
+@enduml
