@@ -107,7 +107,6 @@ L'aboutissement de l'analyse fonctionnelle est de dresser la liste des \textit{U
     \item \textbf{US-4.2 :} En tant que serveur Racine Master, je veux accepter les requêtes de type AXFR en TCP et renvoyer l'intégralité de mon fichier de zone afin d'assurer la redondance requise.
     \item \textbf{US-4.3 :} En tant que serveur Racine Master, lorsque mon fichier JSON est modifié, je veux envoyer un message UDP (OpCode 4, NOTIFY) à mon Slave afin de le prévenir instantanément d'un changement.
     \item \textbf{US-4.4 :} En tant que serveur Racine Réplica (Slave), à la réception d'un NOTIFY ou après l'expiration de mon timer de Refresh, je veux comparer mon numéro de série (SOA) avec celui du Master afin de savoir si je dois me mettre à jour.
-    \item \textbf{US-4.5 :} En tant que serveur Racine Réplica, si le numéro de série du Master est plus grand, je veux effectuer une requête de transfert incrémental (IXFR) en TCP pour télécharger uniquement les nouveaux enregistrements.
 \end{itemize}
 
 \subsection{Épic 5 : Environnement, Qualité et Méthodologie (En tant que Dev)}
