@@ -1,0 +1,55 @@
+{
+  "test_cases": [
+    {
+      "name": "Resolution A record (Round-Robin)",
+      "command": ["python", "-m", "src.client.cli_ui", "www.example.com", "-s", "127.0.0.1", "-p", "10054"],
+      "expected_strings": [
+        "status: 0",
+        "192.168.10.20",
+        "192.168.10.21"
+      ]
+    },
+    {
+      "name": "Resolution AAAA record (IPv6)",
+      "command": ["python", "-m", "src.client.cli_ui", "www.example.com", "-s", "127.0.0.1", "-p", "10054", "-t", "AAAA"],
+      "expected_strings": [
+        "status: 0",
+        "2001:db8::8a2e:370:7334"
+      ]
+    },
+    {
+      "name": "NXDOMAIN error handling",
+      "command": ["python", "-m", "src.client.cli_ui", "nexiste.pas.example.com", "-s", "127.0.0.1", "-p", "10054"],
+      "expected_strings": [
+        "status: 3",
+        "AUTHORITY SECTION:"
+      ]
+    },
+    {
+      "name": "Flush cache command (TXT)",
+      "command": ["python", "-m", "src.client.cli_ui", "flush.cache.local", "-s", "127.0.0.1", "-p", "10054", "-t", "TXT"],
+      "expected_strings": [
+        "status: 0",
+        "Cache flushed successfully"
+      ]
+    },
+    {
+      "name": "Dig standard UDP resolution",
+      "command": ["dig", "@127.0.0.1", "-p", "10054", "api.example.com", "A"],
+      "expected_strings": [
+        "status: NOERROR",
+        "192.168.10.30"
+      ],
+      "requires_tool": "dig"
+    },
+    {
+      "name": "Dig standard TCP fallback",
+      "command": ["dig", "@127.0.0.1", "-p", "10054", "api.example.com", "A", "+tcp"],
+      "expected_strings": [
+        "status: NOERROR",
+        "192.168.10.30"
+      ],
+      "requires_tool": "dig"
+    }
+  ]
+}

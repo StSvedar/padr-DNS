@@ -15,7 +15,7 @@ def test_recursive_resolver_refuses_non_recursive_queries(mock_listener_class):
     query = DNSMessage(id=0x9999, rd=0)
     query.questions.append(DNSQuestion("test.com", RecordType.A))
 
-    response_bytes = server._handle_client_request(query.pack(), ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(query.pack(), ("192.168.1.1", 1234), "UDP")
     response_msg = DNSMessage.unpack(response_bytes)
 
     assert response_msg.rcode == Rcode.REFUSED
@@ -34,7 +34,7 @@ def test_recursive_resolver_cache_hit(mock_listener_class):
     query = DNSMessage(id=0x1234, rd=1)
     query.questions.append(DNSQuestion("cached.com", RecordType.A))
 
-    response_bytes = server._handle_client_request(query.pack(), ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(query.pack(), ("192.168.1.1", 1234), "UDP")
     response_msg = DNSMessage.unpack(response_bytes)
 
     assert response_msg.ra == 1
@@ -56,7 +56,7 @@ def test_recursive_resolver_cache_miss_queries_engine(mock_listener_class):
     query = DNSMessage(id=0x5555, rd=1)
     query.questions.append(DNSQuestion("upstream.com", RecordType.A))
 
-    response_bytes = server._handle_client_request(query.pack(), ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(query.pack(), ("192.168.1.1", 1234), "UDP")
     response_msg = DNSMessage.unpack(response_bytes)
 
     assert response_msg.ra == 1
@@ -72,7 +72,7 @@ def test_recursive_resolver_flush_cache_command(mock_listener_class):
     query = DNSMessage(id=0x7777, rd=1)
     query.questions.append(DNSQuestion("flush.cache.local", RecordType.TXT))
 
-    response_bytes = server._handle_client_request(query.pack(), ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(query.pack(), ("192.168.1.1", 1234), "UDP")
     response_msg = DNSMessage.unpack(response_bytes)
 
     server.cache.clear_cache.assert_called_once()
@@ -84,7 +84,7 @@ def test_recursive_resolver_empty_questions(mock_listener_class):
     server = RecursiveResolver("127.0.0.1", 53)
     query = DNSMessage(id=0x1111, rd=1)
 
-    response_bytes = server._handle_client_request(query.pack(), ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(query.pack(), ("192.168.1.1", 1234), "UDP")
     assert response_bytes == b""
 
 
@@ -93,5 +93,5 @@ def test_recursive_resolver_handles_exception_gracefully(mock_listener_class):
     server = RecursiveResolver("127.0.0.1", 53)
     corrupted_data = b"\x00\x00\xff\xff\xff"
 
-    response_bytes = server._handle_client_request(corrupted_data, ("192.168.1.1", 1234), "UDP")
+    response_bytes = server._route_request(corrupted_data, ("192.168.1.1", 1234), "UDP")
     assert response_bytes == b""

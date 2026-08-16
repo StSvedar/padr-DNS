@@ -41,7 +41,7 @@ class ZoneLoader:
 
         thread = threading.Thread(target=self._watch_loop, daemon=True)
         thread.start()
-        print(f"[*] ZoneLoader is watching {self.filepath} for changes (Windows/Linux compatible).")
+        print(f"[*] ZoneLoader is watching {self.filepath} for changes.")
 
     def _watch_loop(self):
         """Background loop checking file mtime."""
@@ -53,7 +53,7 @@ class ZoneLoader:
                 continue
 
             if self._last_mtime is not None and current_mtime > self._last_mtime:
-                print(f"\n[*] File change detected in {self.filepath}! Sending update notification...")
+                print(f"\n[*] File change detected in {self.filepath}, sending update notification...")
                 self._last_mtime = current_mtime
                 self.load_and_notify()
             elif self._last_mtime is None:

@@ -1,39 +1,37 @@
-import threading
 from typing import Tuple
 from src.core.enums import QR, Rcode, RecordType
 from src.core.zone_data import ZoneData
-from src.core.dns_listener import DNSListener
 from src.core.dns_message import DNSMessage
+from src.recursive_resolver.server import RecursiveResolver
 
-class BaseNameServer:
-    def __init__(self, listen_ip: str, listen_port: int, initial_zone_data: dict = {}):
-        self.listen_ip = listen_ip
-        self.listen_port = listen_port
+class BaseNameServer(RecursiveResolver):
+    def __init__(self, listen_ip: str, listen_port: int, initial_zone_data: dict = None, root_ips: list = None):
+        super().__init__(listen_ip, listen_port, root_ips)
         
-        self.zone_data = ZoneData(zone_dict=initial_zone_data)
-        self.listener = DNSListener()
-
-    def start_listening(self):
-        """Launch UDP and TCP listeners."""
-        print(f"[*] Starting BaseNameServer on {self.listen_ip}:{self.listen_port}")
-        
-        udp_thread = threading.Thread(target=self.listener.start_udp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
-        tcp_thread = threading.Thread(target=self.listener.start_tcp_listener, args=(self.listen_ip, self.listen_port, self._route_request), daemon=True)
-        
-        udp_thread.start()
-        tcp_thread.start()
-        
-        return udp_thread, tcp_thread
+        self.zone_data = ZoneData(zone_dict=initial_zone_data or {})
 
     def _route_request(self, data: bytes, addr: Tuple[str, int], protocol: str) -> bytes:
-        """Callback function to route incoming DNS requests to the appropriate handler."""
+        """Override parent method: Handle locally if authoritative, otherwise delegate to resolver."""
         try:
             query = DNSMessage.unpack(data)
             
-            response_msg = self._build_response(query)
+            if not query.questions:
+                return b""
+
+            qname = str(query.questions[0].name).lower()
             
-            return response_msg.pack()
-            
+            is_authoritative = False
+            if self.zone_data.contains_domain(qname) or self._find_delegation(qname):
+                is_authoritative = True
+
+            if is_authoritative:
+                print(f"[*] Parsed DNS query (Authoritative): {query}")
+                response_msg = self._build_response(query)
+                print(f"[*] Built DNS response: {response_msg}")
+                return response_msg.pack()
+            else:
+                return super()._route_request(data, addr, protocol)
+                
         except Exception as e:
             print(f"[!] Error routing request from {addr} over {protocol}: {e}")
             return b""
@@ -47,7 +45,6 @@ class BaseNameServer:
         if not query.questions:
             return response
 
-        # DNS does not support multiple questions because of the ambiguity it would create in the response. So we only process the first question.
         q = query.questions[0]
         qname = str(q.name).lower()
         qtype = q.qtype
@@ -62,12 +59,29 @@ class BaseNameServer:
 
         else:
             delegation_domain = self._find_delegation(qname)
+            
+            is_our_zone_apex = False
             if delegation_domain:
+                if (self.zone_data.get_records(delegation_domain, RecordType.A) or 
+                    self.zone_data.get_records(delegation_domain, RecordType.AAAA)):
+                    is_our_zone_apex = True
+
+            if delegation_domain and not is_our_zone_apex:
                 response.aa = 0
                 self._build_delegation(delegation_domain, response)
             else:
                 response.aa = 1
                 response.rcode = Rcode.NXDOMAIN
+
+                if delegation_domain:
+                    soa_records = self.zone_data.get_records(delegation_domain, RecordType.SOA)
+                        
+                    if soa_records:
+                        response.authority.extend(soa_records)
+                    else:
+                        ns_records = self.zone_data.get_records(delegation_domain, RecordType.NS)
+                        if ns_records:
+                            response.authority.extend(ns_records)
 
         return response
 

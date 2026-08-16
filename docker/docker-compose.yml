@@ -18,31 +18,47 @@ services:
     volumes:
       - ../zones:/app/zones
 
-  tld_be_ns:
+  root_slave:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.server
+    command: ["python", "-m", "src.name_server.slave.slave_server"]
+    env_file:
+      - ../config/root_slave.env
+    networks:
+      dns_net:
+        ipv4_address: 10.53.0.200
+    depends_on:
+      - root_ns
+
+  tld_com_ns:
     build:
       context: ../
       dockerfile: docker/Dockerfile.server
     command: ["python", "-m", "src.name_server.master.master_server"]
     env_file:
-      - ../config/tld.env
+      - ../config/tld_com.env
     networks:
       dns_net:
         ipv4_address: 10.53.0.101
     volumes:
       - ../zones:/app/zones
 
-  auth_test_ns:
+  auth_example_ns:
     build:
       context: ../
       dockerfile: docker/Dockerfile.server
     command: ["python", "-m", "src.name_server.master.master_server"]
     env_file:
-      - ../config/auth_test.env
+      - ../config/auth_example.env
     networks:
       dns_net:
         ipv4_address: 10.53.0.102
     volumes:
       - ../zones:/app/zones
+    ports:
+      - "10055:53/udp"
+      - "10055:53/tcp"
 
   resolver:
     build:
@@ -59,5 +75,6 @@ services:
       - "10054:53/tcp"
     depends_on:
       - root_ns
-      - tld_be_ns
-      - auth_test_ns
+      - root_slave
+      - tld_com_ns
+      - auth_example_ns
