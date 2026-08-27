@@ -28,9 +28,9 @@ class DNSClient:
         packed_query = query.pack()
 
         if use_tcp:
-            raw_response = self.requester.send_tcp_query(target_ip, port, packed_query)
+            raw_response = self.requester.send_tcp_query(target_ip, port, packed_query, timeout=15)
         else:
-            raw_response = self.requester.send_udp_query(target_ip, port, packed_query)
+            raw_response = self.requester.send_udp_query(target_ip, port, packed_query, timeout=15)
 
         if not raw_response:
             raise ValueError(f"No response from server {target_ip}:{port} (Timeout or Refused).")

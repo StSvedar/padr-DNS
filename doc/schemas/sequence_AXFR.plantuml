@@ -15,13 +15,13 @@ Note over Slave: Le Slave valide la notification de changement
 Slave ->> Master: [SYN] Ouvre une connexion TCP sur port 53
 Master -->> Slave: [SYN, ACK] Connexion acceptée
 
-ref over Slave: Préfixe de 2 octets (Taille) + Trame DNS
 Slave ->> Master: TCP : Demande AXFR (QTYPE=252)
 
-ref over Master: Construction du flux de réponse AXFR
-ref over Master: Préfixe de 2 octets (Taille) + Trame DNS
-Master -->> Slave: TCP : Réponse AXFR (SOA ... Enregistrements ... SOA)
+ref over Master: Sérialisation du dictionnaire Zone en JSON (UTF-8)
+ref over Master: Encapsulation dans un unique RecordType.AXFR
+Master -->> Slave: TCP : Réponse AXFR (1 seul RR contenant le JSON complet)
 
 Slave ->> Master: [FIN] Ferme la connexion TCP
+ref over Slave: Extraction du JSON depuis le RDATA et désérialisation
 ref over Slave: Mise à jour in-place de la ZoneData du Slave
 @enduml

@@ -1,0 +1,30 @@
+@startuml
+
+|Serveur Autoritaire (Enfant)|
+start
+:Réception et Désérialisation;
+
+if (Domaine présent dans la Zone ?) then (oui)
+  :Générer réponse autoritaire (AA=1);
+else (non)
+  if (Délégation trouvée ET Récursion interdite (RD=0) ?) then (oui)
+    :Générer la Délégation (NS);
+  else (non)
+    
+    :Délégation au résolveur\n(via appel à super) ;
+    |Résolveur Récursif (Parent)|
+    
+    if (Cache Hit ?) then (oui)
+      :Extraire la copie;
+    else (non)
+      :Moteur Itératif (Internet);
+      :Sauvegarde en cache;
+    endif
+    
+  endif
+endif
+
+|Serveur Autoritaire (Enfant)|
+:Sérialisation et Envoi au client;
+stop
+@enduml

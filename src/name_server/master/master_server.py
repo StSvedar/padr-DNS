@@ -6,8 +6,8 @@ from src.name_server.master.zone_loader import ZoneLoader
 from src.core.dns_message import DNSMessage
 
 class MasterServer(BaseNameServer):
-    def __init__(self, listen_ip: str, listen_port: int, zone_filepath: str, slave_ips: list = None):
-        super().__init__(listen_ip, listen_port, initial_zone_data=None)
+    def __init__(self, listen_ip: str, listen_port: int, zone_filepath: str, slave_ips: list = None, root_ips: list = None):
+        super().__init__(listen_ip, listen_port, initial_zone_data=None, root_ips=root_ips)
         
         self.zone_loader = ZoneLoader(zone_filepath, self.on_zone_reload)
         self.replication_manager = MasterReplicationManager(self.zone_data, slave_ips or [])
@@ -52,13 +52,14 @@ if __name__ == "__main__":
     host = os.getenv("LISTEN_IP", "0.0.0.0")
     port = int(os.getenv("LISTEN_PORT", 53))
     zone_file = os.getenv("ZONE_FILE", "/app/zones/default.json")
+    root_ips = os.getenv("ROOT_IPS", "127.0.0.1").split(",")
     
     slave_ips_raw = os.getenv("SLAVE_IPS", "")
     slave_ips = slave_ips_raw.split(",") if slave_ips_raw else []
     
     print(f"[*] Bootstrapping master server on {host}:{port} with zone {zone_file} (Slaves: {slave_ips})")
     
-    server = MasterServer(host, port, zone_file, slave_ips)
+    server = MasterServer(host, port, zone_file, slave_ips, root_ips)
     server.start_listening()
     
     try:

@@ -21,7 +21,7 @@ class BaseNameServer(RecursiveResolver):
             qname = str(query.questions[0].name).lower()
             
             is_authoritative = False
-            if self.zone_data.contains_domain(qname) or self._find_delegation(qname):
+            if self.zone_data.contains_domain(qname) or (self._find_delegation(qname) and query.rd == 0):
                 is_authoritative = True
 
             if is_authoritative:

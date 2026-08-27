@@ -1,52 +1,37 @@
 @startuml
 
 start
-:Copier "root_ips" dans "current_destinations";
-:Boucle : max_iterations (défaut = 10);
+:Initialiser la liste des cibles\n(Serveurs Racines);
 
-while (Itérations non atteintes ET destinations non vides ?) is (oui)
-  :Cible = current_destinations[0];
-  :Forcer query.rd = 0;
+while (Serveurs disponibles & < 10 itérations ?) is (oui)
   
-  :Envoi requête UDP à Cible;
-  if (Réponse reçue ET flag TC == 1 ?) then (oui)
-    :Trame tronquée;
-    :Fallback : Envoi requête TCP à Cible;
+  :Envoyer requête UDP à la Cible;
+  
+  if (Trame tronquée (TC=1) ?) then (oui)
+    :Fallback : Renvoyer requête en TCP;
   else (non)
   endif
   
-  if (Réponse DNS obtenue ?) then (oui)
-    if (answers > 0 OU rcode != NOERROR OU aa == 1 ?) then (oui)
-      :Réponse finale ou erreur légitime trouvée;
+  if (Réponse obtenue ?) then (oui)
+    if (Réponse finale ou Autoritaire ?) then (oui)
       stop
     else (non)
-      :Délégation (Referral) reçue;
-      :_extract_delegation(response);
-      note right
-        Recherche des RecordType.A
-        dans la section Additional
-      end note
+      :Extraire les IPs déléguées\n(Section Additional);
       
-      if (Nouvelles IPs trouvées ?) then (non)
-        :Cul-de-sac (Aucune IP fournie);
+      if (Nouvelles IPs ?) then (non)
+        :Cul-de-sac;
         break
       else (oui)
-        :Remplacer "current_destinations" 
-        par ces nouvelles IPs;
+        :Mettre à jour la liste des cibles;
       endif
     endif
     
   else (non)
-    :Timeout ou Erreur réseau;
-    :Retirer Cible de "current_destinations" (pop);
+    :Retirer la Cible de la liste\n(Timeout / Erreur);
   endif
   
 endwhile (non)
 
-:Construire réponse SERVFAIL;
-note right
-  Généré si trop d'itérations
-  ou si plus aucun serveur ne répond
-end note
+:Générer une réponse SERVFAIL;
 stop
 @enduml

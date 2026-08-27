@@ -14,7 +14,6 @@ class IterativeEngine:
             return query
 
         current_destinations = self.root_ips.copy()
-
         for _ in range(max_iterations):
             if not current_destinations:
                 break

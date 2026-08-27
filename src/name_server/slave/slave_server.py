@@ -5,8 +5,8 @@ from src.name_server.base.base_name_server import BaseNameServer
 from src.name_server.slave.slave_replication import SlaveReplicationManager
 
 class SlaveServer(BaseNameServer):
-    def __init__(self, listen_ip: str, listen_port: int, master_ip: str, master_port: int = 53):
-        super().__init__(listen_ip, listen_port, initial_zone_data={})
+    def __init__(self, listen_ip: str, listen_port: int, master_ip: str, master_port: int = 53, root_ips: list = None):
+        super().__init__(listen_ip, listen_port, initial_zone_data={}, root_ips=root_ips)
         
         self.replication_manager = SlaveReplicationManager(
             master_ip, master_port, 
@@ -40,10 +40,11 @@ if __name__ == "__main__":
     port = int(os.getenv("LISTEN_PORT", 53))
     master_ip = os.getenv("MASTER_IP", "127.0.0.1")
     master_port = int(os.getenv("MASTER_PORT", 53))
+    root_ips = os.getenv("ROOT_IPS", "127.0.0.1").split(",")
     
     print(f"[*] Starting SlaveServer on {host}:{port} (target master: {master_ip}:{master_port})")
     
-    server = SlaveServer(host, port, master_ip, master_port)
+    server = SlaveServer(host, port, master_ip, master_port, root_ips)
     server.start_listening()
     
     server.sync_from_master()

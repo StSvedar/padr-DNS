@@ -1,0 +1,38 @@
+@startuml
+
+start
+:Initialiser la liste des cibles\n(Serveurs Racines);
+
+while (Serveurs disponibles & < 10 itérations ?) is (oui)
+  
+  :Envoyer requête UDP à la Cible;
+  
+  if (Trame tronquée (TC=1) ?) then (oui)
+    :Fallback : Renvoyer requête en TCP;
+  else (non)
+  endif
+  
+  if (Réponse obtenue ?) then (oui)
+    if (Réponse finale ou Autoritaire ?) then (oui)
+      :Renvoi de la réponse au client;
+      stop
+    else (non)
+      :Extraire les IPs déléguées\n(Section Additional);
+      
+      if (Nouvelles IPs ?) then (non)
+        :Cul-de-sac;
+        break
+      else (oui)
+        :Mettre à jour la liste des cibles;
+      endif
+    endif
+    
+  else (non)
+    :Retirer la Cible de la liste\n(Timeout / Erreur);
+  endif
+  
+endwhile (non)
+
+:Générer une réponse SERVFAIL;
+stop
+@enduml

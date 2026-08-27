@@ -1,0 +1,55 @@
+@startuml
+skinparam style strictuml
+skinparam defaultFontName Arial
+skinparam class {
+    BackgroundColor #FDFEFE
+    BorderColor #34495E
+    ArrowColor #2C3E50
+    HeaderBackgroundColor #EAEDED
+}
+
+' --- Niveau 1 : Le Moteur Récursif ---
+class RecursiveResolver <<(C,#D6EAF8) Résolveur pur>> {
+    -- Capacités métier --
+    + Moteur Itératif (Internet)
+    + Gestionnaire de Cache
+}
+
+' --- Niveau 2 : La base de l'Autorité ---
+class BaseNameServer <<(C,#D5F5E3) Serveur Hybride>> {
+    -- Capacités métier --
+    + Base de données Zone (Locale)
+}
+
+' --- Niveau 3 : Les instances spécialisées ---
+class MasterServer <<(S,#FDEBD0) Instance de Prod>> {
+    -- Capacités métier --
+    + Surveillance de fichier (Hot-Reload)
+    + Émission de NOTIFY
+    + Fournisseur AXFR
+}
+
+class SlaveServer <<(S,#FDEBD0) Instance de Secours>> {
+    -- Capacités métier --
+    + Réception de NOTIFY
+    + Demandeur AXFR
+}
+
+' --- Relations d'héritage ---
+RecursiveResolver <|-- BaseNameServer : Hérite (Routage fallback)
+BaseNameServer <|-- MasterServer : Spécialisation
+BaseNameServer <|-- SlaveServer : Spécialisation
+
+' --- Notes explicatives pour le jury ---
+note left of RecursiveResolver
+  Ne possède pas de zone.
+  Gère uniquement la résolution récursive.
+end note
+
+note right of BaseNameServer
+  Possède sa propre zone.
+  Capable de répondre aux requêtes autoritatives.
+  Peut effectuer la résolution récursive si demandée.
+end note
+
+@enduml
